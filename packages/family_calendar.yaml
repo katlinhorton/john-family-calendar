@@ -3,7 +3,7 @@
 # ==============================================================================
 #  INSTRUCTIONS:
 #  1. Place this file in your /config/packages/ folder.
-#  2. Ensure your configuration.yaml has: 
+#  2. Ensure your configuration.yaml has:
 #     homeassistant:
 #       packages: !include_dir_named packages
 #  3. RESTART Home Assistant.
@@ -12,17 +12,17 @@
 # 1. HELPERS (The Variables)
 input_text:
   # Filter Toggles (RegEx: .* = Show, ^$ = Hide)
-  alice_calendar_filter:
-    name: Alice Filter
+  kat_calendar_filter:
+    name: Kat Filter
     initial: ".*"
-  bob_calendar_filter:
-    name: Bob Filter
+  buck_calendar_filter:
+    name: Buck Filter
     initial: ".*"
-  charlie_calendar_filter:
-    name: Charlie Filter
+  jacob_calendar_filter:
+    name: Jacob Filter
     initial: ".*"
-  daisy_calendar_filter:
-    name: Daisy Filter
+  connor_calendar_filter:
+    name: Connor Filter
     initial: ".*"
   family_calendar_filter:
     name: Family Filter
@@ -47,13 +47,13 @@ input_select:
   calendar_select:
     name: Select Calendar
     options:
-      - Alice
-      - Bob
-      - Charlie
-      - Daisy
+      - Kat
+      - Buck
+      - Jacob
+      - Connor
       - Family
     icon: mdi:calendar-check
-  
+
   # The View selector (Week, Month, etc)
   calendar_view:
     name: Calendar View
@@ -91,45 +91,45 @@ input_boolean:
 # 2. SCRIPTS (The Logic)
 script:
   # --- Filter Toggles ---
-  alice_calendar_visible_filter:
-    alias: Toggle Alice Calendar
+  kat_calendar_visible_filter:
+    alias: Toggle Kat Calendar
     sequence:
       - action: input_text.set_value
         target:
-          entity_id: input_text.alice_calendar_filter
+          entity_id: input_text.kat_calendar_filter
         data:
           value: >
-            {% if is_state('input_text.alice_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
+            {% if is_state('input_text.kat_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
 
-  bob_calendar_visible_filter:
-    alias: Toggle Bob Calendar
+  buck_calendar_visible_filter:
+    alias: Toggle Buck Calendar
     sequence:
       - action: input_text.set_value
         target:
-          entity_id: input_text.bob_calendar_filter
+          entity_id: input_text.buck_calendar_filter
         data:
           value: >
-            {% if is_state('input_text.bob_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
+            {% if is_state('input_text.buck_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
 
-  charlie_calendar_visible_filter:
-    alias: Toggle Charlie Calendar
+  jacob_calendar_visible_filter:
+    alias: Toggle Jacob Calendar
     sequence:
       - action: input_text.set_value
         target:
-          entity_id: input_text.charlie_calendar_filter
+          entity_id: input_text.jacob_calendar_filter
         data:
           value: >
-            {% if is_state('input_text.charlie_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
+            {% if is_state('input_text.jacob_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
 
-  daisy_calendar_visible_filter:
-    alias: Toggle Daisy Calendar
+  connor_calendar_visible_filter:
+    alias: Toggle Connor Calendar
     sequence:
       - action: input_text.set_value
         target:
-          entity_id: input_text.daisy_calendar_filter
+          entity_id: input_text.connor_calendar_filter
         data:
           value: >
-            {% if is_state('input_text.daisy_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
+            {% if is_state('input_text.connor_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
 
   family_calendar_visible_filter:
     alias: Toggle Family Calendar
@@ -171,12 +171,12 @@ script:
           # Map the Dropdown Name (Left) to your Entity ID (Right).
           # ====================================================================
           calendar_map:
-            "Alice": "calendar.alice"
-            "Bob": "calendar.bob"
-            "Charlie": "calendar.charlie"
-            "Daisy": "calendar.daisy"
+            "Kat": "calendar.katlin_heyjohn_family"
+            "Buck": "calendar.curtis_heyjohn_family"
+            "Jacob": "calendar.jacobhogan91_gmail_com"
+            "Connor": "calendar.connor"
             "Family": "calendar.family"
-          
+
           # Selects the entity based on the map above
           target_calendar: "{{ calendar_map.get(states('input_select.calendar_select'), 'calendar.family') }}"
 
@@ -195,7 +195,7 @@ script:
                   description: "{{ states('input_text.calendar_event_description') }}"
                   start_date: "{{ states('input_datetime.calendar_day_event_start') }}"
                   end_date: "{{ states('input_datetime.calendar_day_event_end') }}"
-          
+
           # Scenario B: Timed Event
           - conditions:
               - condition: state

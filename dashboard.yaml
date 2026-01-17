@@ -1,11 +1,18 @@
 views:
   - type: sections
     max_columns: 10
-    title: Family Calendar
     path: family-calendar
     sections:
       - type: grid
         cards:
+          - type: custom:weather-card
+            entity: weather.openweathermap
+            show_current: true
+            details: true
+            show_forecast: false
+            grid_options:
+              columns: 28
+              rows: 3
           - type: custom:better-moment-card
             parentStyle: |
               line-height:normal;
@@ -17,13 +24,13 @@ views:
               - parentStyle: |
                   font-size:1.5em; text-align:center; margin-top:5px;
                 templateRaw: |
-                  {{moment format=LLLL dd, yyyy}}              
+                  {{moment format=LLLL dd, yyyy}}
               - parentStyle: |
                   font-size:4em;  text-align:center; font-weight:400;
                 templateRaw: |
-                  {{moment format=HH:mm}} 
+                  {{moment format=HH:mm}}
             grid_options:
-              columns: 20
+              columns: 25
             card_mod:
               style: |
                 ha-card {
@@ -31,24 +38,16 @@ views:
                   box-shadow: none !important;
                   border: none !important;
                 }
-          - type: custom:weather-card
-            entity: weather.openweathermap
-            show_current: true
-            details: true
-            show_forecast: false
-            grid_options:
-              columns: 20
-              rows: 3
-          - type: weather-forecast
-            show_current: false
+          - show_current: false
             show_forecast: true
+            type: weather-forecast
             entity: weather.107_courtney_springs_2
             forecast_type: hourly
-            forecast_slots: 5
             name: Weather Forecast
             grid_options:
-              columns: 20
+              columns: 31
               rows: 3
+            forecast_slots: 6
             card_mod:
               style: |
                 ha-card {
@@ -73,16 +72,14 @@ views:
             grid_options:
               columns: 120
               rows: auto
-          - type: vertical-stack
-            cards:
-              - type: markdown
-                content: <font color="Black" size="6">Family Calendar</font>
-                grid_options:
-                  columns: 18
-                  rows: auto
-            grid_options:
-              columns: 120
-              rows: auto
+          - type: custom:bubble-card
+            card_type: select
+            entity: input_select.calendar_view
+            show_name: true
+            show_state: true
+            name: Select View
+            show_last_changed: false
+            show_attribute: false
           - type: horizontal-stack
             cards:
               - type: custom:bubble-card
@@ -160,17 +157,17 @@ views:
               - type: custom:bubble-card
                 card_type: button
                 button_type: name
-                name: Birthdays
-                icon: mdi:cake-variant
+                name: Sports
+                icon: mdi:football
                 show_icon: true
                 show_name: true
                 tap_action:
                   action: perform-action
-                  perform_action: script.birthdays_calendar_visible_filter
+                  perform_action: script.sports_calendar_visible_filter
                 styles: |
                   .bubble-button-background {
                     opacity: 1 !important;
-                    background-color: ${hass.states['input_text.birthdays_calendar_filter'].state === '.*' ? 'light-grey' : '#33a02c'} !important;
+                    background-color: ${hass.states['input_text.sports_calendar_filter'].state === '.*' ? 'light-grey' : '#33a02c'} !important;
                   }
               - type: custom:bubble-card
                 card_type: button
@@ -190,11 +187,6 @@ views:
             grid_options:
               columns: 45
               rows: auto
-          - type: markdown
-            content: ' '
-            grid_options:
-              columns: 3
-              rows: auto
           - type: custom:bubble-card
             card_type: button
             button_type: name
@@ -208,7 +200,7 @@ views:
               * { font-size: 1.05em !important; }
 
               ha-card { --bubble-main-background-color: #393745 !important;
-              width: 300px; }    
+              width: 300px; }
 
               .bubble-icon { --mdc-icon-size: 30px !important; color: snow
               !important; opacity: 1; }
@@ -223,14 +215,6 @@ views:
             grid_options:
               columns: 10
               rows: 1
-          - type: custom:bubble-card
-            card_type: select
-            entity: input_select.calendar_view
-            show_name: true
-            show_state: true
-            name: Select View
-            show_last_changed: false
-            show_attribute: false
         column_span: 10
       - type: grid
         cards:
@@ -280,6 +264,8 @@ views:
                     - type: custom:atomic-calendar-revive
                       entities:
                         - entity: calendar.curtis_heyjohn_family
+                          color: var(--buck-default-primary-color)
+                        - entity: calendar.on_call_schedule_for_buck_john_2
                           color: var(--buck-default-primary-color)
                       maxDaysToShow: 1
                       showDate: false
@@ -408,6 +394,8 @@ views:
                       entities:
                         - entity: calendar.curtis_heyjohn_family
                           color: var(--buck-default-primary-color)
+                        - entity: calendar.on_call_schedule_for_buck_john_2
+                          color: var(--buck-default-primary-color)
                       maxDaysToShow: 2
                       startDaysAhead: 1
                       showDate: false
@@ -495,178 +483,232 @@ views:
               - entity: input_select.calendar_view
                 state: Week
             card:
-              type: custom:config-template-card
-              entities:
-                - input_text.kat_calendar_filter
-                - input_text.buck_calendar_filter
-                - input_text.jacob_calendar_filter
-                - input_text.connor_calendar_filter
-                - input_text.family_calendar_filter
-                - input_text.holidays_calendar_filter
-                - input_text.birthdays_calendar_filter
-              variables:
-                KATCAL: states['input_text.kat_calendar_filter']?.state
-                BUCCAL: states['input_text.buck_calendar_filter']?.state
-                JACCAL: states['input_text.jacob_calendar_filter']?.state
-                CONCAL: states['input_text.connor_calendar_filter']?.state
-                FAMCAL: states['input_text.family_calendar_filter']?.state
-                HOLCAL: states['input_text.holidays_calendar_filter']?.state
-                BIRCAL: states['input_text.birthdays_calendar_filter']?.state
-                OFFSET: |
-                  (() => {
-                    const today = new Date();
-                    const dayOfWeek = today.getDay();
-                    return -dayOfWeek;
-                  })()
-              card:
-                type: custom:week-planner-card
-                calendars:
-                  - entity: calendar.katlin_heyjohn_family
-                    name: Kat
-                    color: var(--kat-default-primary-color)
-                    filter: ${ KATCAL }
-                  - entity: calendar.curtis_heyjohn_family
-                    name: Buck
-                    color: var(--buck-default-primary-color)
-                    filter: ${ BUCCAL }
-                  - entity: calendar.jacobhogan91_gmail_com
-                    name: Jacob
-                    color: var(--jacob-default-primary-color)
-                    filter: ${ JACCAL }
-                  - entity: calendar.connor
-                    name: Connor
-                    color: var(--connor-default-primary-color)
-                    filter: ${ CONCAL }
-                  - entity: calendar.family
-                    name: Family
-                    color: var(--family-default-primary-color)
-                    filter: ${ FAMCAL }
-                  - entity: calendar.birthdays
-                    name: Birthdays
-                    color: var(--birthdays-default-primary-color)
-                    filter: ${ BIRCAL }
-                  - entity: calendar.united_states_va
-                    name: Holidays
-                    color: var(--holidays-default-primary-color)
-                    filter: ${ HOLCAL }
-                days: 7
-                startingDayOffset: ${ OFFSET }
-                hideWeekend: false
-                noCardBackground: false
-                compact: false
-                locale: en
-                showLocation: true
-                hidePastEvents: false
-                hideDaysWithoutEvents: false
-                hideTodayWithoutEvents: false
-                combineSimilarEvents: true
-                showLegend: false
-                legendToggle: false
-                card_mod:
-                  style: |
-                    ha-card {
-                      background: rgba(255, 255, 255, 0.6) !important;
-                      border-radius: 24px;
-                      box-shadow: none;
-                      .event.past { opacity: .2; background-color: gray !important; }
-                      .time { color: #333333 !important; font-size: 0.8em !important; }
-                      .event { color: #333333 !important; line-height: 16px !important; background-color: var(--border-color) !important; border-radius: 10px !important; max-height: 80px !important; overflow: hidden !important; font-size: 1.1em !important; }
-                      .none { background-color: transparent !important; }
-                      .today .number { border-radius: 5px; background-color: orange !important; padding-left: 4px; padding-right: 4px; }
-                      .day .date .text { font-size: 1em !important; font-weight: bold !important; }
-                      .day .date .number { font-weight: bold !important; font-size: 3em !important; }
-                      .day { border: solid 1px whitesmoke; padding: 0.2%; width: 13% !important; }
-                    }
-            grid_options:
-              columns: 120
-              rows: 1
-          - type: conditional
-            conditions:
-              - entity: input_select.calendar_view
-                state: Biweek
-            card:
-              type: custom:config-template-card
-              entities:
-                - input_text.kat_calendar_filter
-                - input_text.buck_calendar_filter
-                - input_text.jacob_calendar_filter
-                - input_text.connor_calendar_filter
-                - input_text.family_calendar_filter
-                - input_text.holidays_calendar_filter
-                - input_text.birthdays_calendar_filter
-              variables:
-                KATCAL: states['input_text.kat_calendar_filter']?.state
-                BUCCAL: states['input_text.buck_calendar_filter']?.state
-                JACCAL: states['input_text.jacob_calendar_filter']?.state
-                CONCAL: states['input_text.connor_calendar_filter']?.state
-                FAMCAL: states['input_text.family_calendar_filter']?.state
-                HOLCAL: states['input_text.holidays_calendar_filter']?.state
-                BIRCAL: states['input_text.birthdays_calendar_filter']?.state
-                OFFSET: |
-                  (() => {
-                    const today = new Date();
-                    const dayOfWeek = today.getDay();
-                    return -dayOfWeek;
-                  })()
-              card:
-                type: custom:week-planner-card
-                calendars:
-                  - entity: calendar.katlin_heyjohn_family
-                    name: Kat
-                    color: var(--kat-default-primary-color)
-                    filter: ${ KATCAL }
-                  - entity: calendar.curtis_heyjohn_family
-                    name: Buck
-                    color: var(--buck-default-primary-color)
-                    filter: ${ BUCCAL }
-                  - entity: calendar.jacobhogan91_gmail_com
-                    name: Jacob
-                    color: var(--jacob-default-primary-color)
-                    filter: ${ JACCAL }
-                  - entity: calendar.connor
-                    name: Connor
-                    color: var(--connor-default-primary-color)
-                    filter: ${ CONCAL }
-                  - entity: calendar.family
-                    name: Family
-                    color: var(--family-default-primary-color)
-                    filter: ${ FAMCAL }
-                  - entity: calendar.birthdays
-                    name: Birthdays
-                    color: var(--birthdays-default-primary-color)
-                    filter: ${ BIRCAL }
-                  - entity: calendar.united_states_va
-                    name: Holidays
-                    color: var(--holidays-default-primary-color)
-                    filter: ${ HOLCAL }
-                days: 14
-                startingDayOffset: ${ OFFSET }
-                hideWeekend: false
-                noCardBackground: false
-                compact: false
-                locale: en
-                showLocation: true
-                hidePastEvents: false
-                hideDaysWithoutEvents: false
-                hideTodayWithoutEvents: false
-                combineSimilarEvents: true
-                showLegend: false
-                legendToggle: false
-                card_mod:
-                  style: |
-                    ha-card {
-                      background: rgba(255, 255, 255, 0.6) !important;
-                      border-radius: 24px;
-                      box-shadow: none;
-                      .event.past { opacity: .2; background-color: gray !important; }
-                      .time { color: #333333 !important; font-size: 0.8em !important; }
-                      .event { color: #333333 !important; line-height: 16px !important; background-color: var(--border-color) !important; border-radius: 10px !important; max-height: 80px !important; overflow: hidden !important; font-size: 1.1em !important; }
-                      .none { background-color: transparent !important; }
-                      .today .number { border-radius: 5px; background-color: orange !important; padding-left: 4px; padding-right: 4px; }
-                      .day .date .text { font-size: 1em !important; font-weight: bold !important; }
-                      .day .date .number { font-weight: bold !important; font-size: 3em !important; }
-                      .day { border: solid 1px whitesmoke; padding: 0.2%; width: 13% !important; }
-                    }
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:button-card
+                      icon: mdi:chevron-left
+                      tap_action:
+                        action: call-service
+                        service: script.week_view_previous
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 40px
+                    - type: custom:button-card
+                      name: |
+                        [[[
+                          const offset = parseInt(states['input_number.week_view_offset'].state) || 0;
+                          const today = new Date();
+                          const dayOfWeek = today.getDay();
+                          const startDate = new Date(today);
+                          startDate.setDate(today.getDate() - dayOfWeek + (offset * 7));
+                          const endDate = new Date(startDate);
+                          endDate.setDate(startDate.getDate() + 6);
+                          const options = { month: 'short', day: 'numeric' };
+                          return startDate.toLocaleDateString('en-US', options) + ' - ' + endDate.toLocaleDateString('en-US', options);
+                        ]]]
+                      tap_action:
+                        action: call-service
+                        service: script.week_view_today
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 40px
+                        name:
+                          - font-size: 1.2em
+                          - font-weight: bold
+                    - type: custom:button-card
+                      icon: mdi:chevron-right
+                      tap_action:
+                        action: call-service
+                        service: script.week_view_next
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 40px
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:button-card
+                      name: Sun
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Mon
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Tue
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Wed
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Thu
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Fri
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Sat
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                - type: custom:config-template-card
+                  entities:
+                    - input_text.kat_calendar_filter
+                    - input_text.buck_calendar_filter
+                    - input_text.jacob_calendar_filter
+                    - input_text.connor_calendar_filter
+                    - input_text.family_calendar_filter
+                    - input_text.holidays_calendar_filter
+                    - input_text.sports_calendar_filter
+                    - input_number.week_view_offset
+                  variables:
+                    KATCAL: states['input_text.kat_calendar_filter']?.state
+                    BUCCAL: states['input_text.buck_calendar_filter']?.state
+                    JACCAL: states['input_text.jacob_calendar_filter']?.state
+                    CONCAL: states['input_text.connor_calendar_filter']?.state
+                    FAMCAL: states['input_text.family_calendar_filter']?.state
+                    HOLCAL: states['input_text.holidays_calendar_filter']?.state
+                    SPOCAL: states['input_text.sports_calendar_filter']?.state
+                    OFFSET: |
+                      (() => {
+                        const today = new Date();
+                        const dayOfWeek = today.getDay();
+                        const weekOffset = parseInt(states['input_number.week_view_offset']?.state) || 0;
+                        return -dayOfWeek + (weekOffset * 7);
+                      })()
+                  card:
+                    type: custom:week-planner-card
+                    calendars:
+                      - entity: calendar.katlin_heyjohn_family
+                        name: Kat
+                        color: var(--kat-default-primary-color)
+                        filter: ${ KATCAL }
+                      - entity: calendar.curtis_heyjohn_family
+                        name: Buck
+                        color: var(--buck-default-primary-color)
+                        filter: ${ BUCCAL }
+                      - entity: calendar.on_call_schedule_for_buck_john_2
+                        color: var(--buck-default-primary-color)
+                        name: Buck
+                        filter: ${ BUCCAL }
+                      - entity: calendar.jacobhogan91_gmail_com
+                        name: Jacob
+                        color: var(--jacob-default-primary-color)
+                        filter: ${ JACCAL }
+                      - entity: calendar.connor
+                        name: Connor
+                        color: var(--connor-default-primary-color)
+                        filter: ${ CONCAL }
+                      - entity: calendar.friend_events
+                        name: Family
+                        color: var(--family-default-primary-color)
+                        filter: ${ FAMCAL }
+                      - entity: calendar.family_calendar
+                        name: Family
+                        color: var(--family-default-primary-color)
+                        filter: ${ FAMCAL }
+                      - entity: calendar.https_www_seahawks_com_api_addtocalendar_ag_d_text_seattle_seahawks_games
+                        name: Sports
+                        color: var(--sports-default-primary-color)
+                        filter: ${ SPOCAL }
+                      - entity: calendar.united_states_va
+                        name: Holidays
+                        color: var(--holidays-default-primary-color)
+                        filter: ${ HOLCAL }
+                    days: 7
+                    startingDayOffset: ${ OFFSET }
+                    hideWeekend: false
+                    noCardBackground: false
+                    compact: false
+                    locale: en
+                    showLocation: true
+                    hidePastEvents: false
+                    hideDaysWithoutEvents: false
+                    hideTodayWithoutEvents: false
+                    combineSimilarEvents: true
+                    showLegend: false
+                    legendToggle: false
+                    card_mod:
+                      style: |
+                        ha-card {
+                          background: rgba(255, 255, 255, 0.6) !important;
+                          border-radius: 24px;
+                          box-shadow: none;
+                          .event.past { opacity: .2; background-color: gray !important; }
+                          .time { color: #333333 !important; font-size: 0.8em !important; }
+                          .event { color: #333333 !important; line-height: 16px !important; background-color: var(--border-color) !important; border-radius: 10px !important; max-height: 80px !important; overflow: hidden !important; font-size: 1.1em !important; }
+                          .none { background-color: transparent !important; }
+                          .today .number { border-radius: 5px; background-color: orange !important; padding-left: 4px; padding-right: 4px; }
+                          .day .date .text { display: none !important; }
+                          .day .date .number { font-weight: bold !important; font-size: 3em !important; }
+                          .day { border: solid 1px whitesmoke; padding: 0.2%; width: 13% !important; }
+                        }
             grid_options:
               columns: 120
               rows: 1
@@ -675,88 +717,263 @@ views:
               - entity: input_select.calendar_view
                 state: Month
             card:
-              type: custom:config-template-card
-              entities:
-                - input_text.kat_calendar_filter
-                - input_text.buck_calendar_filter
-                - input_text.jacob_calendar_filter
-                - input_text.connor_calendar_filter
-                - input_text.family_calendar_filter
-                - input_text.holidays_calendar_filter
-                - input_text.birthdays_calendar_filter
-              variables:
-                KATCAL: states['input_text.kat_calendar_filter']?.state
-                BUCCAL: states['input_text.buck_calendar_filter']?.state
-                JACCAL: states['input_text.jacob_calendar_filter']?.state
-                CONCAL: states['input_text.connor_calendar_filter']?.state
-                FAMCAL: states['input_text.family_calendar_filter']?.state
-                HOLCAL: states['input_text.holidays_calendar_filter']?.state
-                BIRCAL: states['input_text.birthdays_calendar_filter']?.state
-                OFFSET: |
-                  (() => {
-                    const today = new Date();
-                    const dayOfWeek = today.getDay();
-                    return -dayOfWeek;
-                  })()
-              card:
-                type: custom:week-planner-card
-                calendars:
-                  - entity: calendar.katlin_heyjohn_family
-                    name: Kat
-                    color: var(--kat-default-primary-color)
-                    filter: ${ KATCAL }
-                  - entity: calendar.curtis_heyjohn_family
-                    name: Buck
-                    color: var(--buck-default-primary-color)
-                    filter: ${ BUCCAL }
-                  - entity: calendar.jacobhogan91_gmail_com
-                    name: Jacob
-                    color: var(--jacob-default-primary-color)
-                    filter: ${ JACCAL }
-                  - entity: calendar.connor
-                    name: Connor
-                    color: var(--connor-default-primary-color)
-                    filter: ${ CONCAL }
-                  - entity: calendar.family
-                    name: Family
-                    color: var(--family-default-primary-color)
-                    filter: ${ FAMCAL }
-                  - entity: calendar.birthdays
-                    name: Birthdays
-                    color: var(--birthdays-default-primary-color)
-                    filter: ${ BIRCAL }
-                  - entity: calendar.united_states_va
-                    name: Holidays
-                    color: var(--holidays-default-primary-color)
-                    filter: ${ HOLCAL }
-                days: 28
-                startingDayOffset: ${ OFFSET }
-                hideWeekend: false
-                noCardBackground: false
-                compact: false
-                locale: en
-                showLocation: true
-                hidePastEvents: false
-                hideDaysWithoutEvents: false
-                hideTodayWithoutEvents: false
-                combineSimilarEvents: true
-                showLegend: false
-                legendToggle: false
-                card_mod:
-                  style: |
-                    ha-card {
-                      background: rgba(255, 255, 255, 0.6) !important;
-                      border-radius: 24px;
-                      box-shadow: none;
-                      .event.past { opacity: .2; background-color: gray !important; }
-                      .time { color: #333333 !important; font-size: 0.8em !important; }
-                      .event { color: #333333 !important; line-height: 16px !important; background-color: var(--border-color) !important; border-radius: 10px !important; max-height: 80px !important; overflow: hidden !important; font-size: 1.1em !important; }
-                      .none { background-color: transparent !important; }
-                      .today .number { border-radius: 5px; background-color: orange !important; padding-left: 4px; padding-right: 4px; }
-                      .day .date .text { font-size: 1em !important; font-weight: bold !important; }
-                      .day .date .number { font-weight: bold !important; font-size: 3em !important; }
-                      .day { border: solid 1px whitesmoke; padding: 0.2%; width: 13% !important; }
-                    }
+              type: vertical-stack
+              cards:
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:button-card
+                      icon: mdi:chevron-left
+                      tap_action:
+                        action: call-service
+                        service: script.month_view_previous
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 40px
+                    - type: custom:button-card
+                      name: |
+                        [[[
+                          const offset = parseInt(states['input_number.month_view_offset'].state) || 0;
+                          const today = new Date();
+                          const targetDate = new Date(today.getFullYear(), today.getMonth() + offset, 1);
+                          return targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                        ]]]
+                      tap_action:
+                        action: call-service
+                        service: script.month_view_today
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 40px
+                        name:
+                          - font-size: 1.2em
+                          - font-weight: bold
+                    - type: custom:button-card
+                      icon: mdi:chevron-right
+                      tap_action:
+                        action: call-service
+                        service: script.month_view_next
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 40px
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:button-card
+                      name: Sun
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Mon
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Tue
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Wed
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Thu
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Fri
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                    - type: custom:button-card
+                      name: Sat
+                      show_icon: false
+                      tap_action:
+                        action: none
+                      styles:
+                        card:
+                          - background: transparent
+                          - box-shadow: none
+                          - height: 30px
+                        name:
+                          - font-weight: bold
+                - type: custom:config-template-card
+                  entities:
+                    - input_text.kat_calendar_filter
+                    - input_text.buck_calendar_filter
+                    - input_text.jacob_calendar_filter
+                    - input_text.connor_calendar_filter
+                    - input_text.family_calendar_filter
+                    - input_text.holidays_calendar_filter
+                    - input_text.sports_calendar_filter
+                    - input_number.month_view_offset
+                  variables:
+                    KATCAL: states['input_text.kat_calendar_filter']?.state
+                    BUCCAL: states['input_text.buck_calendar_filter']?.state
+                    JACCAL: states['input_text.jacob_calendar_filter']?.state
+                    CONCAL: states['input_text.connor_calendar_filter']?.state
+                    FAMCAL: states['input_text.family_calendar_filter']?.state
+                    HOLCAL: states['input_text.holidays_calendar_filter']?.state
+                    SPOCAL: states['input_text.sports_calendar_filter']?.state
+                    MONTH_OFFSET: |
+                      (() => {
+                        const monthOffset = parseInt(states['input_number.month_view_offset']?.state) || 0;
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const dayOfWeek = today.getDay();
+                        
+                        // First of target month
+                        const firstOfMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+                        
+                        // First Sunday of the calendar grid (may be in previous month)
+                        const firstSunday = new Date(firstOfMonth);
+                        firstSunday.setDate(1 - firstOfMonth.getDay());
+                        
+                        // Current week's Sunday
+                        const currentSunday = new Date(today);
+                        currentSunday.setDate(today.getDate() - dayOfWeek);
+                        
+                        // Weeks between current Sunday and target first Sunday
+                        const weeksDiff = Math.round((firstSunday - currentSunday) / (7 * 24 * 60 * 60 * 1000));
+                        
+                        // Use same pattern as week view
+                        return -dayOfWeek + (weeksDiff * 7);
+                      })()
+                    MONTH_DAYS: |
+                      (() => {
+                        const monthOffset = parseInt(states['input_number.month_view_offset']?.state) || 0;
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        const month = today.getMonth() + monthOffset;
+                        const targetDate = new Date(year, month, 1);
+                        const targetYear = targetDate.getFullYear();
+                        const targetMonth = targetDate.getMonth();
+                        const firstOfMonth = new Date(targetYear, targetMonth, 1);
+                        const dayOfWeekOfFirst = firstOfMonth.getDay();
+                        const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+                        const totalCells = Math.ceil((dayOfWeekOfFirst + daysInMonth) / 7) * 7;
+                        return totalCells;
+                      })()
+                  card:
+                    type: custom:week-planner-card
+                    calendars:
+                      - entity: calendar.katlin_heyjohn_family
+                        name: Kat
+                        color: var(--kat-default-primary-color)
+                        filter: ${ KATCAL }
+                      - entity: calendar.curtis_heyjohn_family
+                        name: Buck
+                        color: var(--buck-default-primary-color)
+                        filter: ${ BUCCAL }
+                      - entity: calendar.on_call_schedule_for_buck_john_2
+                        color: var(--buck-default-primary-color)
+                        name: Buck
+                        filter: ${ BUCCAL }
+                      - entity: calendar.jacobhogan91_gmail_com
+                        name: Jacob
+                        color: var(--jacob-default-primary-color)
+                        filter: ${ JACCAL }
+                      - entity: calendar.connor
+                        name: Connor
+                        color: var(--connor-default-primary-color)
+                        filter: ${ CONCAL }
+                      - entity: calendar.friend_events
+                        name: Family
+                        color: var(--family-default-primary-color)
+                        filter: ${ FAMCAL }
+                      - entity: calendar.family_calendar
+                        name: Family
+                        color: var(--family-default-primary-color)
+                        filter: ${ FAMCAL }
+                      - entity: calendar.https_www_seahawks_com_api_addtocalendar_ag_d_text_seattle_seahawks_games
+                        name: Sports
+                        color: var(--sports-default-primary-color)
+                        filter: ${ SPOCAL }
+                      - entity: calendar.united_states_va
+                        name: Holidays
+                        color: var(--holidays-default-primary-color)
+                        filter: ${ HOLCAL }
+                    days: ${ MONTH_DAYS }
+                    texts:
+                      noEvents: ''
+                    startingDayOffset: ${ MONTH_OFFSET }
+                    showWeekDayText: false
+                    hideWeekend: false
+                    noCardBackground: false
+                    compact: false
+                    locale: en
+                    showLocation: false
+                    hidePastEvents: false
+                    hideDaysWithoutEvents: false
+                    hideTodayWithoutEvents: false
+                    combineSimilarEvents: true
+                    showLegend: false
+                    legendToggle: false
+                    card_mod:
+                      style: |
+                        ha-card {
+                          background: rgba(255, 255, 255, 0.6) !important;
+                          border-radius: 24px;
+                          box-shadow: none;
+                          .event.past { opacity: .2; background-color: gray !important; }
+                          .time { color: #333333 !important; font-size: 0.8em !important; }
+                          .event { color: #333333 !important; line-height: 16px !important; background-color: var(--border-color) !important; border-radius: 10px !important; max-height: 80px !important; overflow: hidden !important; font-size: 1.1em !important; }
+                          .none { background-color: transparent !important; }
+                          .today .number { border-radius: 5px; background-color: orange !important; padding-left: 4px; padding-right: 4px; }
+                          .day .date .text { display: none !important; }
+                          .day .date .number { font-weight: bold !important; font-size: 3em !important; }
+                          .day { border: solid 1px whitesmoke; padding: 0.2%; width: 13% !important; }
+                          .container { width: 100% !important; justify-content: space-between !important; }
+                        }
             grid_options:
               columns: 120
               rows: 1
@@ -833,5 +1050,609 @@ views:
                               if (states['input_select.calendar_select'].state == 'Connor') return "var(--connor-default-primary-color)";
                               if (states['input_select.calendar_select'].state == 'Family') return "var(--family-default-primary-color)";
                               return "gray";
-                            ]]]                
+                            ]]]
+    cards: []
+    icon: mdi:calendar-account
+  # =============================================================================
+# FAMILY CHORES DASHBOARD - WORKING VERSION
+# =============================================================================
+# This version avoids the problematic auto-entities and config-template-card
+# dynamic card generation that was causing errors.
+#
+# Instead, it uses:
+# - Markdown cards for displaying chores (Jinja templates work here)
+# - Bubble-card popups with entities cards for selecting which chore to complete
+# - Input selects to choose which chore to mark done
+# =============================================================================
+
+  - type: panel
+    path: chores
+    icon: mdi:broom
+    title: Family Chores
+    cards:
+      - type: vertical-stack
+        cards:
+          # Header
+          - type: markdown
+            content: |
+              # 📋 Today's Chores
+              *Select a person's "Complete" button to mark chores done and earn points!*
+            card_mod:
+              style: |
+                ha-card {
+                  background: transparent;
+                  box-shadow: none;
+                  text-align: center;
+                  padding-bottom: 0;
+                }
+
+          # Main 4-column grid
+          - type: grid
+            columns: 4
+            square: false
+            cards:
+
+              ################################
+              # KAT
+              ################################
+              - type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    name: Kat
+                    icon: mdi:account
+                    styles:
+                      card:
+                        - background: var(--kat-default-primary-color)
+                        - border-radius: 12px
+                        - padding: 12px
+                      icon:
+                        - color: white
+                      name:
+                        - color: white
+                        - font-size: 1.5em
+                        - font-weight: bold
+
+                  # Chores list - using markdown with Jinja (this works!)
+                  - type: markdown
+                    content: |
+                      {% set chores = state_attr('sensor.kat_chores_today', 'chores') | default([]) %}
+                      {% if chores | length == 0 %}
+                      ✅ **All done for today!**
+                      {% else %}
+                      {% for chore in chores %}
+                      ☐ **{{ chore.name }}** *({{ chore.points }} pts)*
+                      {% endfor %}
+                      {% endif %}
+                    card_mod:
+                      style: |
+                        ha-card {
+                          background: rgba(255, 255, 255, 0.6) !important;
+                          border-radius: 12px;
+                          min-height: 80px;
+                        }
+
+                  # Complete chore button - opens popup
+                  - type: custom:button-card
+                    name: ✓ Complete Chore
+                    icon: mdi:checkbox-marked-circle-outline
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#kat-complete'
+                    styles:
+                      card:
+                        - background: var(--kat-default-primary-color)
+                        - border-radius: 8px
+                        - padding: 8px
+                      icon:
+                        - color: white
+                      name:
+                        - color: white
+                        - font-size: 1em
+
+                  # Points display
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:button-card
+                        entity: input_number.kat_weekly_points
+                        name: Week
+                        show_state: true
+                        icon: mdi:calendar-week
+                        styles:
+                          card:
+                            - background: rgba(255, 255, 255, 0.6)
+                            - border-radius: 12px
+                          icon:
+                            - color: var(--kat-default-primary-color)
+                            - width: 20px
+                          name:
+                            - font-size: 0.75em
+                            - color: '#666'
+                          state:
+                            - color: var(--kat-default-primary-color)
+                            - font-size: 1.3em
+                            - font-weight: bold
+                      - type: custom:button-card
+                        entity: input_number.kat_monthly_points
+                        name: Month
+                        show_state: true
+                        icon: mdi:calendar-month
+                        styles:
+                          card:
+                            - background: rgba(255, 255, 255, 0.6)
+                            - border-radius: 12px
+                          icon:
+                            - color: var(--kat-default-primary-color)
+                            - width: 20px
+                          name:
+                            - font-size: 0.75em
+                            - color: '#666'
+                          state:
+                            - color: var(--kat-default-primary-color)
+                            - font-size: 1.3em
+                            - font-weight: bold
+
+              ################################
+              # BUCK
+              ################################
+              - type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    name: Buck
+                    icon: mdi:account
+                    styles:
+                      card:
+                        - background: var(--buck-default-primary-color)
+                        - border-radius: 12px
+                        - padding: 12px
+                      icon:
+                        - color: white
+                      name:
+                        - color: white
+                        - font-size: 1.5em
+                        - font-weight: bold
+
+                  - type: markdown
+                    content: |
+                      {% set chores = state_attr('sensor.buck_chores_today', 'chores') | default([]) %}
+                      {% if chores | length == 0 %}
+                      ✅ **All done for today!**
+                      {% else %}
+                      {% for chore in chores %}
+                      ☐ **{{ chore.name }}** *({{ chore.points }} pts)*
+                      {% endfor %}
+                      {% endif %}
+                    card_mod:
+                      style: |
+                        ha-card {
+                          background: rgba(255, 255, 255, 0.6) !important;
+                          border-radius: 12px;
+                          min-height: 80px;
+                        }
+
+                  - type: custom:button-card
+                    name: ✓ Complete Chore
+                    icon: mdi:checkbox-marked-circle-outline
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#buck-complete'
+                    styles:
+                      card:
+                        - background: var(--buck-default-primary-color)
+                        - border-radius: 8px
+                        - padding: 8px
+                      icon:
+                        - color: white
+                      name:
+                        - color: white
+                        - font-size: 1em
+
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:button-card
+                        entity: input_number.buck_weekly_points
+                        name: Week
+                        show_state: true
+                        icon: mdi:calendar-week
+                        styles:
+                          card:
+                            - background: rgba(255, 255, 255, 0.6)
+                            - border-radius: 12px
+                          icon:
+                            - color: var(--buck-default-primary-color)
+                            - width: 20px
+                          name:
+                            - font-size: 0.75em
+                            - color: '#666'
+                          state:
+                            - color: var(--buck-default-primary-color)
+                            - font-size: 1.3em
+                            - font-weight: bold
+                      - type: custom:button-card
+                        entity: input_number.buck_monthly_points
+                        name: Month
+                        show_state: true
+                        icon: mdi:calendar-month
+                        styles:
+                          card:
+                            - background: rgba(255, 255, 255, 0.6)
+                            - border-radius: 12px
+                          icon:
+                            - color: var(--buck-default-primary-color)
+                            - width: 20px
+                          name:
+                            - font-size: 0.75em
+                            - color: '#666'
+                          state:
+                            - color: var(--buck-default-primary-color)
+                            - font-size: 1.3em
+                            - font-weight: bold
+
+              ################################
+              # JACOB
+              ################################
+              - type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    name: Jacob
+                    icon: mdi:account
+                    styles:
+                      card:
+                        - background: var(--jacob-default-primary-color)
+                        - border-radius: 12px
+                        - padding: 12px
+                      icon:
+                        - color: white
+                      name:
+                        - color: white
+                        - font-size: 1.5em
+                        - font-weight: bold
+
+                  - type: markdown
+                    content: |
+                      {% set chores = state_attr('sensor.jacob_chores_today', 'chores') | default([]) %}
+                      {% if chores | length == 0 %}
+                      ✅ **All done for today!**
+                      {% else %}
+                      {% for chore in chores %}
+                      ☐ **{{ chore.name }}** *({{ chore.points }} pts)*
+                      {% endfor %}
+                      {% endif %}
+                    card_mod:
+                      style: |
+                        ha-card {
+                          background: rgba(255, 255, 255, 0.6) !important;
+                          border-radius: 12px;
+                          min-height: 80px;
+                        }
+
+                  - type: custom:button-card
+                    name: ✓ Complete Chore
+                    icon: mdi:checkbox-marked-circle-outline
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#jacob-complete'
+                    styles:
+                      card:
+                        - background: var(--jacob-default-primary-color)
+                        - border-radius: 8px
+                        - padding: 8px
+                      icon:
+                        - color: white
+                      name:
+                        - color: white
+                        - font-size: 1em
+
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:button-card
+                        entity: input_number.jacob_weekly_points
+                        name: Week
+                        show_state: true
+                        icon: mdi:calendar-week
+                        styles:
+                          card:
+                            - background: rgba(255, 255, 255, 0.6)
+                            - border-radius: 12px
+                          icon:
+                            - color: var(--jacob-default-primary-color)
+                            - width: 20px
+                          name:
+                            - font-size: 0.75em
+                            - color: '#666'
+                          state:
+                            - color: var(--jacob-default-primary-color)
+                            - font-size: 1.3em
+                            - font-weight: bold
+                      - type: custom:button-card
+                        entity: input_number.jacob_monthly_points
+                        name: Month
+                        show_state: true
+                        icon: mdi:calendar-month
+                        styles:
+                          card:
+                            - background: rgba(255, 255, 255, 0.6)
+                            - border-radius: 12px
+                          icon:
+                            - color: var(--jacob-default-primary-color)
+                            - width: 20px
+                          name:
+                            - font-size: 0.75em
+                            - color: '#666'
+                          state:
+                            - color: var(--jacob-default-primary-color)
+                            - font-size: 1.3em
+                            - font-weight: bold
+
+              ################################
+              # CONNOR
+              ################################
+              - type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    name: Connor
+                    icon: mdi:account
+                    styles:
+                      card:
+                        - background: var(--connor-default-primary-color)
+                        - border-radius: 12px
+                        - padding: 12px
+                      icon:
+                        - color: white
+                      name:
+                        - color: white
+                        - font-size: 1.5em
+                        - font-weight: bold
+
+                  - type: markdown
+                    content: |
+                      {% set chores = state_attr('sensor.connor_chores_today', 'chores') | default([]) %}
+                      {% if chores | length == 0 %}
+                      ✅ **All done for today!**
+                      {% else %}
+                      {% for chore in chores %}
+                      ☐ **{{ chore.name }}** *({{ chore.points }} pts)*
+                      {% endfor %}
+                      {% endif %}
+                    card_mod:
+                      style: |
+                        ha-card {
+                          background: rgba(255, 255, 255, 0.6) !important;
+                          border-radius: 12px;
+                          min-height: 80px;
+                        }
+
+                  - type: custom:button-card
+                    name: ✓ Complete Chore
+                    icon: mdi:checkbox-marked-circle-outline
+                    tap_action:
+                      action: navigate
+                      navigation_path: '#connor-complete'
+                    styles:
+                      card:
+                        - background: var(--connor-default-primary-color)
+                        - border-radius: 8px
+                        - padding: 8px
+                      icon:
+                        - color: white
+                      name:
+                        - color: white
+                        - font-size: 1em
+
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:button-card
+                        entity: input_number.connor_weekly_points
+                        name: Week
+                        show_state: true
+                        icon: mdi:calendar-week
+                        styles:
+                          card:
+                            - background: rgba(255, 255, 255, 0.6)
+                            - border-radius: 12px
+                          icon:
+                            - color: var(--connor-default-primary-color)
+                            - width: 20px
+                          name:
+                            - font-size: 0.75em
+                            - color: '#666'
+                          state:
+                            - color: var(--connor-default-primary-color)
+                            - font-size: 1.3em
+                            - font-weight: bold
+                      - type: custom:button-card
+                        entity: input_number.connor_monthly_points
+                        name: Month
+                        show_state: true
+                        icon: mdi:calendar-month
+                        styles:
+                          card:
+                            - background: rgba(255, 255, 255, 0.6)
+                            - border-radius: 12px
+                          icon:
+                            - color: var(--connor-default-primary-color)
+                            - width: 20px
+                          name:
+                            - font-size: 0.75em
+                            - color: '#666'
+                          state:
+                            - color: var(--connor-default-primary-color)
+                            - font-size: 1.3em
+                            - font-weight: bold
+
+          # =================================================================
+          # POPUP CARDS FOR COMPLETING CHORES
+          # =================================================================
+          # Using input_select to choose which chore, then a button to complete
+          # =================================================================
+
+          # KAT POPUP
+          - type: custom:bubble-card
+            card_type: pop-up
+            hash: '#kat-complete'
+            name: Complete Kat's Chore
+            icon: mdi:checkbox-marked
+            styles: |
+              .bubble-button-card-container {
+                background: var(--kat-default-primary-color) !important;
+              }
+          - type: vertical-stack
+            cards:
+              - type: markdown
+                content: |
+                  {% set chores = state_attr('sensor.kat_chores_today', 'chores') | default([]) %}
+                  {% if chores | length == 0 %}
+                  ### ✅ No chores to complete!
+                  {% else %}
+                  ### Select chore from dropdown, then tap Complete:
+                  {% endif %}
+              - type: entities
+                entities:
+                  - entity: input_select.kat_chore_select
+                    name: Select Chore
+              - type: custom:button-card
+                name: ✓ Mark Complete
+                icon: mdi:check-bold
+                tap_action:
+                  action: call-service
+                  service: script.complete_kat_chore_from_select
+                styles:
+                  card:
+                    - background: var(--kat-default-primary-color)
+                    - border-radius: 8px
+                    - padding: 12px
+                  icon:
+                    - color: white
+                  name:
+                    - color: white
+                    - font-size: 1.2em
+
+          # BUCK POPUP
+          - type: custom:bubble-card
+            card_type: pop-up
+            hash: '#buck-complete'
+            name: Complete Buck's Chore
+            icon: mdi:checkbox-marked
+            styles: |
+              .bubble-button-card-container {
+                background: var(--buck-default-primary-color) !important;
+              }
+          - type: vertical-stack
+            cards:
+              - type: markdown
+                content: |
+                  {% set chores = state_attr('sensor.buck_chores_today', 'chores') | default([]) %}
+                  {% if chores | length == 0 %}
+                  ### ✅ No chores to complete!
+                  {% else %}
+                  ### Select chore from dropdown, then tap Complete:
+                  {% endif %}
+              - type: entities
+                entities:
+                  - entity: input_select.buck_chore_select
+                    name: Select Chore
+              - type: custom:button-card
+                name: ✓ Mark Complete
+                icon: mdi:check-bold
+                tap_action:
+                  action: call-service
+                  service: script.complete_buck_chore_from_select
+                styles:
+                  card:
+                    - background: var(--buck-default-primary-color)
+                    - border-radius: 8px
+                    - padding: 12px
+                  icon:
+                    - color: white
+                  name:
+                    - color: white
+                    - font-size: 1.2em
+
+          # JACOB POPUP
+          - type: custom:bubble-card
+            card_type: pop-up
+            hash: '#jacob-complete'
+            name: Complete Jacob's Chore
+            icon: mdi:checkbox-marked
+            styles: |
+              .bubble-button-card-container {
+                background: var(--jacob-default-primary-color) !important;
+              }
+          - type: vertical-stack
+            cards:
+              - type: markdown
+                content: |
+                  {% set chores = state_attr('sensor.jacob_chores_today', 'chores') | default([]) %}
+                  {% if chores | length == 0 %}
+                  ### ✅ No chores to complete!
+                  {% else %}
+                  ### Select chore from dropdown, then tap Complete:
+                  {% endif %}
+              - type: entities
+                entities:
+                  - entity: input_select.jacob_chore_select
+                    name: Select Chore
+              - type: custom:button-card
+                name: ✓ Mark Complete
+                icon: mdi:check-bold
+                tap_action:
+                  action: call-service
+                  service: script.complete_jacob_chore_from_select
+                styles:
+                  card:
+                    - background: var(--jacob-default-primary-color)
+                    - border-radius: 8px
+                    - padding: 12px
+                  icon:
+                    - color: white
+                  name:
+                    - color: white
+                    - font-size: 1.2em
+
+          # CONNOR POPUP
+          - type: custom:bubble-card
+            card_type: pop-up
+            hash: '#connor-complete'
+            name: Complete Connor's Chore
+            icon: mdi:checkbox-marked
+            styles: |
+              .bubble-button-card-container {
+                background: var(--connor-default-primary-color) !important;
+              }
+          - type: vertical-stack
+            cards:
+              - type: markdown
+                content: |
+                  {% set chores = state_attr('sensor.connor_chores_today', 'chores') | default([]) %}
+                  {% if chores | length == 0 %}
+                  ### ✅ No chores to complete!
+                  {% else %}
+                  ### Select chore from dropdown, then tap Complete:
+                  {% endif %}
+              - type: entities
+                entities:
+                  - entity: input_select.connor_chore_select
+                    name: Select Chore
+              - type: custom:button-card
+                name: ✓ Mark Complete
+                icon: mdi:check-bold
+                tap_action:
+                  action: call-service
+                  service: script.complete_connor_chore_from_select
+                styles:
+                  card:
+                    - background: var(--connor-default-primary-color)
+                    - border-radius: 8px
+                    - padding: 12px
+                  icon:
+                    - color: white
+                  name:
+                    - color: white
+                    - font-size: 1.2em
+  - type: sidebar
+    path: ''
+    icon: mdi:basket
+    cards: []
+  - type: sidebar
+    path: ''
+    icon: mdi:food
     cards: []

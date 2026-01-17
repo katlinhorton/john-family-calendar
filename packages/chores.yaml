@@ -1,0 +1,507 @@
+# =============================================================================
+# GROCY CHORES PACKAGE - VERSION 3 (FIXED)
+# =============================================================================
+# Save to: /config/packages/grocy_chores.yaml
+#
+# FIXED: Using correct Grocy field names:
+#   - id (not chore_id)
+#   - name (not chore_name)
+#   - description (contains points like "3 points")
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TEMPLATE SENSORS - Filter chores by person AND by due date
+# -----------------------------------------------------------------------------
+# Grocy User IDs:
+#   User 2 = Buck (Curtis)
+#   User 3 = Kat (Katlin)
+#   User 4 = Jacob
+#   User 5 = Connor
+# -----------------------------------------------------------------------------
+
+template:
+  - sensor:
+      # KAT (user_id: 3)
+      - name: "Kat Chores Today"
+        unique_id: kat_chores_today
+        state: >
+          {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set ns = namespace(count=0) %}
+          {% for chore in chores %}
+            {% if chore.next_execution_assigned_to_user_id == 3 %}
+              {% set exec_date = chore.next_estimated_execution_time | default('') %}
+              {% if exec_date and exec_date[:10] <= today %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          chores: >
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set ns = namespace(result=[]) %}
+            {% for chore in chores %}
+              {% if chore.next_execution_assigned_to_user_id == 3 %}
+                {% set exec_date = chore.next_estimated_execution_time | default('') %}
+                {% if exec_date and exec_date[:10] <= today %}
+                  {% set points = chore.description | default('0') | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int if points else 0 %}
+                  {% set ns.result = ns.result + [{'id': chore.id, 'name': chore.name, 'points': point_val}] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.result }}
+          chore_options: >
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set ns = namespace(options=['No chores']) %}
+            {% for chore in chores %}
+              {% if chore.next_execution_assigned_to_user_id == 3 %}
+                {% set exec_date = chore.next_estimated_execution_time | default('') %}
+                {% if exec_date and exec_date[:10] <= today %}
+                  {% set points = chore.description | default('0') | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int if points else 0 %}
+                  {% set ns.options = ns.options + [chore.name ~ ' (' ~ point_val ~ ' pts) [ID:' ~ chore.id ~ ']'] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.options }}
+
+      # BUCK (user_id: 2)
+      - name: "Buck Chores Today"
+        unique_id: buck_chores_today
+        state: >
+          {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set ns = namespace(count=0) %}
+          {% for chore in chores %}
+            {% if chore.next_execution_assigned_to_user_id == 2 %}
+              {% set exec_date = chore.next_estimated_execution_time | default('') %}
+              {% if exec_date and exec_date[:10] <= today %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          chores: >
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set ns = namespace(result=[]) %}
+            {% for chore in chores %}
+              {% if chore.next_execution_assigned_to_user_id == 2 %}
+                {% set exec_date = chore.next_estimated_execution_time | default('') %}
+                {% if exec_date and exec_date[:10] <= today %}
+                  {% set points = chore.description | default('0') | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int if points else 0 %}
+                  {% set ns.result = ns.result + [{'id': chore.id, 'name': chore.name, 'points': point_val}] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.result }}
+          chore_options: >
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set ns = namespace(options=['No chores']) %}
+            {% for chore in chores %}
+              {% if chore.next_execution_assigned_to_user_id == 2 %}
+                {% set exec_date = chore.next_estimated_execution_time | default('') %}
+                {% if exec_date and exec_date[:10] <= today %}
+                  {% set points = chore.description | default('0') | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int if points else 0 %}
+                  {% set ns.options = ns.options + [chore.name ~ ' (' ~ point_val ~ ' pts) [ID:' ~ chore.id ~ ']'] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.options }}
+
+      # JACOB (user_id: 4)
+      - name: "Jacob Chores Today"
+        unique_id: jacob_chores_today
+        state: >
+          {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set ns = namespace(count=0) %}
+          {% for chore in chores %}
+            {% if chore.next_execution_assigned_to_user_id == 4 %}
+              {% set exec_date = chore.next_estimated_execution_time | default('') %}
+              {% if exec_date and exec_date[:10] <= today %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          chores: >
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set ns = namespace(result=[]) %}
+            {% for chore in chores %}
+              {% if chore.next_execution_assigned_to_user_id == 4 %}
+                {% set exec_date = chore.next_estimated_execution_time | default('') %}
+                {% if exec_date and exec_date[:10] <= today %}
+                  {% set points = chore.description | default('0') | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int if points else 0 %}
+                  {% set ns.result = ns.result + [{'id': chore.id, 'name': chore.name, 'points': point_val}] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.result }}
+          chore_options: >
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set ns = namespace(options=['No chores']) %}
+            {% for chore in chores %}
+              {% if chore.next_execution_assigned_to_user_id == 4 %}
+                {% set exec_date = chore.next_estimated_execution_time | default('') %}
+                {% if exec_date and exec_date[:10] <= today %}
+                  {% set points = chore.description | default('0') | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int if points else 0 %}
+                  {% set ns.options = ns.options + [chore.name ~ ' (' ~ point_val ~ ' pts) [ID:' ~ chore.id ~ ']'] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.options }}
+
+      # CONNOR (user_id: 5)
+      - name: "Connor Chores Today"
+        unique_id: connor_chores_today
+        state: >
+          {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set ns = namespace(count=0) %}
+          {% for chore in chores %}
+            {% if chore.next_execution_assigned_to_user_id == 5 %}
+              {% set exec_date = chore.next_estimated_execution_time | default('') %}
+              {% if exec_date and exec_date[:10] <= today %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          chores: >
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set ns = namespace(result=[]) %}
+            {% for chore in chores %}
+              {% if chore.next_execution_assigned_to_user_id == 5 %}
+                {% set exec_date = chore.next_estimated_execution_time | default('') %}
+                {% if exec_date and exec_date[:10] <= today %}
+                  {% set points = chore.description | default('0') | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int if points else 0 %}
+                  {% set ns.result = ns.result + [{'id': chore.id, 'name': chore.name, 'points': point_val}] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.result }}
+          chore_options: >
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') | default([]) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set ns = namespace(options=['No chores']) %}
+            {% for chore in chores %}
+              {% if chore.next_execution_assigned_to_user_id == 5 %}
+                {% set exec_date = chore.next_estimated_execution_time | default('') %}
+                {% if exec_date and exec_date[:10] <= today %}
+                  {% set points = chore.description | default('0') | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int if points else 0 %}
+                  {% set ns.options = ns.options + [chore.name ~ ' (' ~ point_val ~ ' pts) [ID:' ~ chore.id ~ ']'] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.options }}
+
+# -----------------------------------------------------------------------------
+# INPUT NUMBERS - Point tracking
+# -----------------------------------------------------------------------------
+
+input_number:
+  kat_weekly_points:
+    name: Kat Weekly Points
+    min: 0
+    max: 1000
+    step: 1
+    mode: box
+    icon: mdi:star-outline
+  kat_monthly_points:
+    name: Kat Monthly Points
+    min: 0
+    max: 5000
+    step: 1
+    mode: box
+    icon: mdi:star
+
+  buck_weekly_points:
+    name: Buck Weekly Points
+    min: 0
+    max: 1000
+    step: 1
+    mode: box
+    icon: mdi:star-outline
+  buck_monthly_points:
+    name: Buck Monthly Points
+    min: 0
+    max: 5000
+    step: 1
+    mode: box
+    icon: mdi:star
+
+  jacob_weekly_points:
+    name: Jacob Weekly Points
+    min: 0
+    max: 1000
+    step: 1
+    mode: box
+    icon: mdi:star-outline
+  jacob_monthly_points:
+    name: Jacob Monthly Points
+    min: 0
+    max: 5000
+    step: 1
+    mode: box
+    icon: mdi:star
+
+  connor_weekly_points:
+    name: Connor Weekly Points
+    min: 0
+    max: 1000
+    step: 1
+    mode: box
+    icon: mdi:star-outline
+  connor_monthly_points:
+    name: Connor Monthly Points
+    min: 0
+    max: 5000
+    step: 1
+    mode: box
+    icon: mdi:star
+
+# -----------------------------------------------------------------------------
+# INPUT SELECTS - For choosing which chore to complete
+# -----------------------------------------------------------------------------
+
+input_select:
+  kat_chore_select:
+    name: Kat's Chore to Complete
+    options:
+      - "No chores"
+    icon: mdi:clipboard-check
+
+  buck_chore_select:
+    name: Buck's Chore to Complete
+    options:
+      - "No chores"
+    icon: mdi:clipboard-check
+
+  jacob_chore_select:
+    name: Jacob's Chore to Complete
+    options:
+      - "No chores"
+    icon: mdi:clipboard-check
+
+  connor_chore_select:
+    name: Connor's Chore to Complete
+    options:
+      - "No chores"
+    icon: mdi:clipboard-check
+
+# -----------------------------------------------------------------------------
+# SCRIPTS
+# -----------------------------------------------------------------------------
+
+script:
+  # Generic chore completion
+  complete_chore:
+    alias: Complete Chore
+    fields:
+      chore_id:
+        description: The Grocy chore ID
+      person:
+        description: Person name (kat, buck, jacob, connor)
+      points:
+        description: Points to add
+    sequence:
+      - service: grocy.execute_chore
+        data:
+          chore_id: "{{ chore_id }}"
+          done_by: >
+            {% if person | lower == 'kat' %}3
+            {% elif person | lower == 'buck' %}2
+            {% elif person | lower == 'jacob' %}4
+            {% elif person | lower == 'connor' %}5
+            {% else %}1{% endif %}
+      - service: input_number.set_value
+        target:
+          entity_id: "input_number.{{ person | lower }}_weekly_points"
+        data:
+          value: "{{ states('input_number.' ~ (person | lower) ~ '_weekly_points') | int + points | int }}"
+      - service: input_number.set_value
+        target:
+          entity_id: "input_number.{{ person | lower }}_monthly_points"
+        data:
+          value: "{{ states('input_number.' ~ (person | lower) ~ '_monthly_points') | int + points | int }}"
+      - delay:
+          seconds: 2
+      - service: homeassistant.update_entity
+        target:
+          entity_id: sensor.grocy_chores
+
+  # Complete chore from input_select for each person
+  complete_kat_chore_from_select:
+    alias: Complete Kat's Selected Chore
+    sequence:
+      - variables:
+          selected: "{{ states('input_select.kat_chore_select') }}"
+      - condition: template
+        value_template: "{{ selected != 'No chores' and '[ID:' in selected }}"
+      - variables:
+          chore_id: "{{ selected.split('[ID:')[1].split(']')[0] }}"
+          points: "{{ selected.split('(')[1].split(' pts')[0] }}"
+      - service: script.complete_chore
+        data:
+          chore_id: "{{ chore_id }}"
+          person: kat
+          points: "{{ points }}"
+
+  complete_buck_chore_from_select:
+    alias: Complete Buck's Selected Chore
+    sequence:
+      - variables:
+          selected: "{{ states('input_select.buck_chore_select') }}"
+      - condition: template
+        value_template: "{{ selected != 'No chores' and '[ID:' in selected }}"
+      - variables:
+          chore_id: "{{ selected.split('[ID:')[1].split(']')[0] }}"
+          points: "{{ selected.split('(')[1].split(' pts')[0] }}"
+      - service: script.complete_chore
+        data:
+          chore_id: "{{ chore_id }}"
+          person: buck
+          points: "{{ points }}"
+
+  complete_jacob_chore_from_select:
+    alias: Complete Jacob's Selected Chore
+    sequence:
+      - variables:
+          selected: "{{ states('input_select.jacob_chore_select') }}"
+      - condition: template
+        value_template: "{{ selected != 'No chores' and '[ID:' in selected }}"
+      - variables:
+          chore_id: "{{ selected.split('[ID:')[1].split(']')[0] }}"
+          points: "{{ selected.split('(')[1].split(' pts')[0] }}"
+      - service: script.complete_chore
+        data:
+          chore_id: "{{ chore_id }}"
+          person: jacob
+          points: "{{ points }}"
+
+  complete_connor_chore_from_select:
+    alias: Complete Connor's Selected Chore
+    sequence:
+      - variables:
+          selected: "{{ states('input_select.connor_chore_select') }}"
+      - condition: template
+        value_template: "{{ selected != 'No chores' and '[ID:' in selected }}"
+      - variables:
+          chore_id: "{{ selected.split('[ID:')[1].split(']')[0] }}"
+          points: "{{ selected.split('(')[1].split(' pts')[0] }}"
+      - service: script.complete_chore
+        data:
+          chore_id: "{{ chore_id }}"
+          person: connor
+          points: "{{ points }}"
+
+  # Refresh all chore input_selects
+  refresh_chore_selects:
+    alias: Refresh Chore Selects
+    sequence:
+      - service: input_select.set_options
+        target:
+          entity_id: input_select.kat_chore_select
+        data:
+          options: "{{ state_attr('sensor.kat_chores_today', 'chore_options') | default(['No chores']) }}"
+      - service: input_select.set_options
+        target:
+          entity_id: input_select.buck_chore_select
+        data:
+          options: "{{ state_attr('sensor.buck_chores_today', 'chore_options') | default(['No chores']) }}"
+      - service: input_select.set_options
+        target:
+          entity_id: input_select.jacob_chore_select
+        data:
+          options: "{{ state_attr('sensor.jacob_chores_today', 'chore_options') | default(['No chores']) }}"
+      - service: input_select.set_options
+        target:
+          entity_id: input_select.connor_chore_select
+        data:
+          options: "{{ state_attr('sensor.connor_chores_today', 'chore_options') | default(['No chores']) }}"
+
+# -----------------------------------------------------------------------------
+# AUTOMATIONS
+# -----------------------------------------------------------------------------
+
+automation:
+  # Refresh chore selects when grocy_chores sensor updates
+  - alias: Update Chore Selects on Grocy Change
+    id: update_chore_selects_grocy
+    trigger:
+      - platform: state
+        entity_id: sensor.grocy_chores
+    action:
+      - delay:
+          seconds: 2
+      - service: script.refresh_chore_selects
+
+  # Also refresh at startup and periodically
+  - alias: Refresh Chore Selects Periodically
+    id: refresh_chore_selects_periodic
+    trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
+    action:
+      - service: script.refresh_chore_selects
+
+  # Reset weekly points every Sunday
+  - alias: Reset Weekly Chore Points
+    id: reset_weekly_chore_points
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    condition:
+      - condition: time
+        weekday:
+          - sun
+    action:
+      - service: input_number.set_value
+        target:
+          entity_id:
+            - input_number.kat_weekly_points
+            - input_number.buck_weekly_points
+            - input_number.jacob_weekly_points
+            - input_number.connor_weekly_points
+        data:
+          value: 0
+
+  # Reset monthly points on 1st of month
+  - alias: Reset Monthly Chore Points
+    id: reset_monthly_chore_points
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    condition:
+      - condition: template
+        value_template: "{{ now().day == 1 }}"
+    action:
+      - service: input_number.set_value
+        target:
+          entity_id:
+            - input_number.kat_monthly_points
+            - input_number.buck_monthly_points
+            - input_number.jacob_monthly_points
+            - input_number.connor_monthly_points
+        data:
+          value: 0

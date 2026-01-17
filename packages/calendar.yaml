@@ -27,8 +27,8 @@ input_text:
   family_calendar_filter:
     name: Family Filter
     initial: ".*"
-  birthdays_calendar_filter:
-    name: Birthdays Filter
+  sports_calendar_filter:
+    name: Sports Filter
     initial: ".*"
   holidays_calendar_filter:
     name: Holidays Filter
@@ -61,7 +61,6 @@ input_select:
       - Today
       - Tomorrow
       - Week
-      - Biweek
       - Month
     initial: Week
 
@@ -88,8 +87,85 @@ input_boolean:
   family_calendar_show:
     name: Show Family Calendar
 
+input_number:
+  # Week view navigation offset (in weeks)
+  week_view_offset:
+    name: Week View Offset
+    min: -52
+    max: 52
+    step: 1
+    initial: 0
+    mode: box
+    icon: mdi:calendar-week
+
+  # Month view navigation offset (in months)
+  month_view_offset:
+    name: Month View Offset
+    min: -12
+    max: 12
+    step: 1
+    initial: 0
+    mode: box
+    icon: mdi:calendar-month
+
 # 2. SCRIPTS (The Logic)
 script:
+  # --- Week Navigation ---
+  week_view_previous:
+    alias: Previous Week
+    sequence:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.week_view_offset
+        data:
+          value: "{{ states('input_number.week_view_offset') | int - 1 }}"
+
+  week_view_next:
+    alias: Next Week
+    sequence:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.week_view_offset
+        data:
+          value: "{{ states('input_number.week_view_offset') | int + 1 }}"
+
+  week_view_today:
+    alias: Week View Today
+    sequence:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.week_view_offset
+        data:
+          value: 0
+
+  # --- Month Navigation ---
+  month_view_previous:
+    alias: Previous Month
+    sequence:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.month_view_offset
+        data:
+          value: "{{ states('input_number.month_view_offset') | int - 1 }}"
+
+  month_view_next:
+    alias: Next Month
+    sequence:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.month_view_offset
+        data:
+          value: "{{ states('input_number.month_view_offset') | int + 1 }}"
+
+  month_view_today:
+    alias: Month View Today
+    sequence:
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.month_view_offset
+        data:
+          value: 0
+
   # --- Filter Toggles ---
   kat_calendar_visible_filter:
     alias: Toggle Kat Calendar
@@ -141,15 +217,15 @@ script:
           value: >
             {% if is_state('input_text.family_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
 
-  birthdays_calendar_visible_filter:
-    alias: Toggle Birthdays Calendar
+  sports_calendar_visible_filter:
+    alias: Toggle Sports Calendar
     sequence:
       - action: input_text.set_value
         target:
-          entity_id: input_text.birthdays_calendar_filter
+          entity_id: input_text.sports_calendar_filter
         data:
           value: >
-            {% if is_state('input_text.birthdays_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
+            {% if is_state('input_text.sports_calendar_filter', '.*') %} ^$ {% else %} .* {% endif %}
 
   holidays_calendar_visible_filter:
     alias: Toggle Holidays Calendar

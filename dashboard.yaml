@@ -673,7 +673,8 @@ views:
                         name: Family
                         color: var(--family-default-primary-color)
                         filter: ${ FAMCAL }
-                      - entity: calendar.https_www_seahawks_com_api_addtocalendar_ag_d_text_seattle_seahawks_games
+                      - entity: >-
+                          calendar.https_www_seahawks_com_api_addtocalendar_ag_d_text_seattle_seahawks_games
                         name: Sports
                         color: var(--sports-default-primary-color)
                         filter: ${ SPOCAL }
@@ -934,7 +935,8 @@ views:
                         name: Family
                         color: var(--family-default-primary-color)
                         filter: ${ FAMCAL }
-                      - entity: calendar.https_www_seahawks_com_api_addtocalendar_ag_d_text_seattle_seahawks_games
+                      - entity: >-
+                          calendar.https_www_seahawks_com_api_addtocalendar_ag_d_text_seattle_seahawks_games
                         name: Sports
                         color: var(--sports-default-primary-color)
                         filter: ${ SPOCAL }
@@ -1053,601 +1055,516 @@ views:
                             ]]]
     cards: []
     icon: mdi:calendar-account
-  # =============================================================================
-# FAMILY CHORES DASHBOARD - WORKING VERSION
-# =============================================================================
-# This version avoids the problematic auto-entities and config-template-card
-# dynamic card generation that was causing errors.
-#
-# Instead, it uses:
-# - Markdown cards for displaying chores (Jinja templates work here)
-# - Bubble-card popups with entities cards for selecting which chore to complete
-# - Input selects to choose which chore to mark done
-# =============================================================================
-
-  - type: panel
+  - type: sections
+    max_columns: 10
     path: chores
     icon: mdi:broom
-    title: Family Chores
-    cards:
-      - type: vertical-stack
+    sections:
+      - type: grid
+        column_span: 2
         cards:
-          # Header
-          - type: markdown
-            content: |
-              # 📋 Today's Chores
-              *Select a person's "Complete" button to mark chores done and earn points!*
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent;
-                  box-shadow: none;
-                  text-align: center;
-                  padding-bottom: 0;
-                }
+          - type: custom:button-card
+            entity: person.katlin_john
+            show_entity_picture: true
+            show_name: false
+            show_state: true
+            tap_action:
+              action: none
+            styles:
+              card:
+                - background: '#E91E63'
+                - border-radius: 12px
+                - padding: 16px
+                - margin: 0 40px 0 0
+              entity_picture:
+                - width: 150px
+                - height: 150px
+                - border-radius: 50%
+              name:
+                - color: white
+                - font-size: 1.4em
+                - font-weight: bold
+              state:
+                - color: white
+                - font-size: 1.4em
+                - font-weight: bold
+              custom_fields:
+                remaining:
+                  - color: rgba(255,255,255,0.8)
+                  - font-size: 1em
+                  - margin-top: 20px
+            grid_options:
+              columns: 24
+          - type: custom:auto-entities
+            show_empty: true
+            card:
+              type: vertical-stack
+            card_param: cards
+            filter:
+              template: >-
+                {%- set chores_raw = state_attr('sensor.kat_chores_today',
+                'chores') -%}
 
-          # Main 4-column grid
-          - type: grid
-            columns: 4
-            square: false
+                {%- set chores = chores_raw | from_json if chores_raw is string
+                else (chores_raw or []) -%}
+
+                {%- if chores | length == 0 -%}
+
+                {{ {'type': 'markdown', 'content': '✅ All done for today!'} }},
+
+                {%- else -%}
+
+                {%- for chore in chores -%}
+
+                {{ {'type': 'custom:button-card', 'entity':
+                'sensor.kat_chores_today', 'show_icon': true, 'show_name': true,
+                'show_state': false, 'icon': 'mdi:checkbox-marked-circle' if
+                chore.done else 'mdi:checkbox-blank-circle-outline', 'name':
+                chore.name ~ ' (' ~ chore.points ~ ' pts)', 'tap_action':
+                {'action': 'call-service', 'service': 'script.complete_chore',
+                'service_data': {'chore_id': chore.id, 'person': 'kat',
+                'points': chore.points}}, 'styles': {'card': [{'background':
+                'rgba(0,0,0,0.05)' if chore.done else 'rgba(255,255,255,0.95)'},
+                {'border-radius': '8px'}, {'padding': '12px'}, {'margin-bottom':
+                '8px'}, {'opacity': '0.5' if chore.done else '1'}], 'icon':
+                [{'color': '#E91E63'}, {'width': '28px'}, {'height': '28px'}],
+                'name': [{'font-size': '1.1em'}, {'font-weight': 'normal' if
+                chore.done else 'bold'}, {'text-decoration': 'line-through' if
+                chore.done else 'none'}, {'color': '#888' if chore.done else
+                'inherit'}, {'justify-self': 'start'}, {'white-space':
+                'normal'}, {'text-align': 'left'}], 'grid':
+                [{'grid-template-areas': '"i n"'}, {'grid-template-columns':
+                '40px 1fr'}]}} }},
+
+                {%- endfor -%}
+
+                {%- endif -%}
+            grid_options:
+              columns: 24
+              rows: auto
+          - type: horizontal-stack
             cards:
+              - type: entity
+                entity: input_number.kat_weekly_points
+                name: Week
+                icon: none
+                card_mod:
+                  style: |
+                    ha-card {
+                      text-align: center;
+                    }
+                    .value {
+                      font-size: 1.8em;
+                      font-weight: bold;
+                      color: #E91E63;
+                    }
+              - type: entity
+                entity: input_number.kat_monthly_points
+                name: Month
+                icon: none
+                card_mod:
+                  style: |
+                    ha-card {
+                      text-align: center;
+                    }
+                    .value {
+                      font-size: 1.8em;
+                      font-weight: bold;
+                      color: #E91E63;
+                    }
+            grid_options:
+              columns: 24
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            entity: person.curtis_john
+            show_entity_picture: true
+            show_state: true
+            show_name: false
+            tap_action:
+              action: none
+            styles:
+              card:
+                - background: '#2196F3'
+                - border-radius: 12px
+                - padding: 16px
+              entity_picture:
+                - width: 150px
+                - height: 150px
+                - border-radius: 50%
+              state:
+                - color: white
+                - font-size: 1.4em
+                - font-weight: bold
+              custom_fields:
+                remaining:
+                  - color: rgba(255,255,255,0.8)
+                  - font-size: 1em
+                  - margin-top: 4px
+            grid_options:
+              columns: 24
+          - type: custom:auto-entities
+            show_empty: true
+            card:
+              type: vertical-stack
+            card_param: cards
+            filter:
+              template: >-
+                {%- set chores_raw = state_attr('sensor.buck_chores_today',
+                'chores') -%}
 
-              ################################
-              # KAT
-              ################################
-              - type: vertical-stack
-                cards:
-                  - type: custom:button-card
-                    name: Kat
-                    icon: mdi:account
-                    styles:
-                      card:
-                        - background: var(--kat-default-primary-color)
-                        - border-radius: 12px
-                        - padding: 12px
-                      icon:
-                        - color: white
-                      name:
-                        - color: white
-                        - font-size: 1.5em
-                        - font-weight: bold
+                {%- set chores = chores_raw | from_json if chores_raw is string
+                else (chores_raw or []) -%}
 
-                  # Chores list - using markdown with Jinja (this works!)
-                  - type: markdown
-                    content: |
-                      {% set chores = state_attr('sensor.kat_chores_today', 'chores') | default([]) %}
-                      {% if chores | length == 0 %}
-                      ✅ **All done for today!**
-                      {% else %}
-                      {% for chore in chores %}
-                      ☐ **{{ chore.name }}** *({{ chore.points }} pts)*
-                      {% endfor %}
-                      {% endif %}
-                    card_mod:
-                      style: |
-                        ha-card {
-                          background: rgba(255, 255, 255, 0.6) !important;
-                          border-radius: 12px;
-                          min-height: 80px;
-                        }
+                {%- if chores | length == 0 -%}
 
-                  # Complete chore button - opens popup
-                  - type: custom:button-card
-                    name: ✓ Complete Chore
-                    icon: mdi:checkbox-marked-circle-outline
-                    tap_action:
-                      action: navigate
-                      navigation_path: '#kat-complete'
-                    styles:
-                      card:
-                        - background: var(--kat-default-primary-color)
-                        - border-radius: 8px
-                        - padding: 8px
-                      icon:
-                        - color: white
-                      name:
-                        - color: white
-                        - font-size: 1em
+                {{ {'type': 'markdown', 'content': '✅ All done for today!'} }},
 
-                  # Points display
-                  - type: horizontal-stack
-                    cards:
-                      - type: custom:button-card
-                        entity: input_number.kat_weekly_points
-                        name: Week
-                        show_state: true
-                        icon: mdi:calendar-week
-                        styles:
-                          card:
-                            - background: rgba(255, 255, 255, 0.6)
-                            - border-radius: 12px
-                          icon:
-                            - color: var(--kat-default-primary-color)
-                            - width: 20px
-                          name:
-                            - font-size: 0.75em
-                            - color: '#666'
-                          state:
-                            - color: var(--kat-default-primary-color)
-                            - font-size: 1.3em
-                            - font-weight: bold
-                      - type: custom:button-card
-                        entity: input_number.kat_monthly_points
-                        name: Month
-                        show_state: true
-                        icon: mdi:calendar-month
-                        styles:
-                          card:
-                            - background: rgba(255, 255, 255, 0.6)
-                            - border-radius: 12px
-                          icon:
-                            - color: var(--kat-default-primary-color)
-                            - width: 20px
-                          name:
-                            - font-size: 0.75em
-                            - color: '#666'
-                          state:
-                            - color: var(--kat-default-primary-color)
-                            - font-size: 1.3em
-                            - font-weight: bold
+                {%- else -%}
 
-              ################################
-              # BUCK
-              ################################
-              - type: vertical-stack
-                cards:
-                  - type: custom:button-card
-                    name: Buck
-                    icon: mdi:account
-                    styles:
-                      card:
-                        - background: var(--buck-default-primary-color)
-                        - border-radius: 12px
-                        - padding: 12px
-                      icon:
-                        - color: white
-                      name:
-                        - color: white
-                        - font-size: 1.5em
-                        - font-weight: bold
+                {%- for chore in chores -%}
 
-                  - type: markdown
-                    content: |
-                      {% set chores = state_attr('sensor.buck_chores_today', 'chores') | default([]) %}
-                      {% if chores | length == 0 %}
-                      ✅ **All done for today!**
-                      {% else %}
-                      {% for chore in chores %}
-                      ☐ **{{ chore.name }}** *({{ chore.points }} pts)*
-                      {% endfor %}
-                      {% endif %}
-                    card_mod:
-                      style: |
-                        ha-card {
-                          background: rgba(255, 255, 255, 0.6) !important;
-                          border-radius: 12px;
-                          min-height: 80px;
-                        }
+                {{ {'type': 'custom:button-card', 'entity':
+                'sensor.buck_chores_today', 'show_icon': true, 'show_name':
+                true, 'show_state': false, 'icon': 'mdi:checkbox-marked-circle'
+                if chore.done else 'mdi:checkbox-blank-circle-outline', 'name':
+                chore.name ~ ' (' ~ chore.points ~ ' pts)', 'tap_action':
+                {'action': 'call-service', 'service': 'script.complete_chore',
+                'service_data': {'chore_id': chore.id, 'person': 'buck',
+                'points': chore.points}}, 'styles': {'card': [{'background':
+                'rgba(0,0,0,0.05)' if chore.done else 'rgba(255,255,255,0.95)'},
+                {'border-radius': '8px'}, {'padding': '12px'}, {'margin-bottom':
+                '8px'}, {'opacity': '0.5' if chore.done else '1'}], 'icon':
+                [{'color': '#2196F3'}, {'width': '28px'}, {'height': '28px'}],
+                'name': [{'font-size': '1.1em'}, {'font-weight': 'normal' if
+                chore.done else 'bold'}, {'text-decoration': 'line-through' if
+                chore.done else 'none'}, {'color': '#888' if chore.done else
+                'inherit'}, {'justify-self': 'start'}, {'white-space':
+                'normal'}, {'text-align': 'left'}], 'grid':
+                [{'grid-template-areas': '"i n"'}, {'grid-template-columns':
+                '40px 1fr'}]}} }},
 
-                  - type: custom:button-card
-                    name: ✓ Complete Chore
-                    icon: mdi:checkbox-marked-circle-outline
-                    tap_action:
-                      action: navigate
-                      navigation_path: '#buck-complete'
-                    styles:
-                      card:
-                        - background: var(--buck-default-primary-color)
-                        - border-radius: 8px
-                        - padding: 8px
-                      icon:
-                        - color: white
-                      name:
-                        - color: white
-                        - font-size: 1em
+                {%- endfor -%}
 
-                  - type: horizontal-stack
-                    cards:
-                      - type: custom:button-card
-                        entity: input_number.buck_weekly_points
-                        name: Week
-                        show_state: true
-                        icon: mdi:calendar-week
-                        styles:
-                          card:
-                            - background: rgba(255, 255, 255, 0.6)
-                            - border-radius: 12px
-                          icon:
-                            - color: var(--buck-default-primary-color)
-                            - width: 20px
-                          name:
-                            - font-size: 0.75em
-                            - color: '#666'
-                          state:
-                            - color: var(--buck-default-primary-color)
-                            - font-size: 1.3em
-                            - font-weight: bold
-                      - type: custom:button-card
-                        entity: input_number.buck_monthly_points
-                        name: Month
-                        show_state: true
-                        icon: mdi:calendar-month
-                        styles:
-                          card:
-                            - background: rgba(255, 255, 255, 0.6)
-                            - border-radius: 12px
-                          icon:
-                            - color: var(--buck-default-primary-color)
-                            - width: 20px
-                          name:
-                            - font-size: 0.75em
-                            - color: '#666'
-                          state:
-                            - color: var(--buck-default-primary-color)
-                            - font-size: 1.3em
-                            - font-weight: bold
+                {%- endif -%}
+            grid_options:
+              columns: 24
+              rows: auto
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: input_number.buck_weekly_points
+                name: Week
+                icon: none
+                card_mod:
+                  style: |
+                    ha-card {
+                      text-align: center;
+                    }
+                    .value {
+                      font-size: 1.8em;
+                      font-weight: bold;
+                      color: #2196F3;
+                    }
+              - type: entity
+                entity: input_number.buck_monthly_points
+                name: Month
+                icon: none
+                card_mod:
+                  style: |
+                    ha-card {
+                      text-align: center;
+                    }
+                    .value {
+                      font-size: 1.8em;
+                      font-weight: bold;
+                      color: #2196F3;
+                    }
+            grid_options:
+              columns: 24
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            entity: person.jacob_hogan
+            name: Jacob
+            show_entity_picture: true
+            show_state: true
+            show_name: false
+            tap_action:
+              action: none
+            styles:
+              card:
+                - background: '#4CAF50'
+                - border-radius: 12px
+                - padding: 16px
+              entity_picture:
+                - width: 150px
+                - height: 150px
+                - border-radius: 50%
+              state:
+                - color: white
+                - font-size: 1.4em
+                - font-weight: bold
+              custom_fields:
+                remaining:
+                  - color: rgba(255,255,255,0.8)
+                  - font-size: 1em
+                  - margin-top: 4px
+            grid_options:
+              columns: 24
+          - type: custom:auto-entities
+            show_empty: true
+            card:
+              type: vertical-stack
+            card_param: cards
+            filter:
+              template: >-
+                {%- set jacob_home = state_attr('sensor.jacob_chores_today',
+                'jacob_home') -%}
 
-              ################################
-              # JACOB
-              ################################
-              - type: vertical-stack
-                cards:
-                  - type: custom:button-card
-                    name: Jacob
-                    icon: mdi:account
-                    styles:
-                      card:
-                        - background: var(--jacob-default-primary-color)
-                        - border-radius: 12px
-                        - padding: 12px
-                      icon:
-                        - color: white
-                      name:
-                        - color: white
-                        - font-size: 1.5em
-                        - font-weight: bold
+                {%- if jacob_home == false or jacob_home == 'False' -%}
 
-                  - type: markdown
-                    content: |
-                      {% set chores = state_attr('sensor.jacob_chores_today', 'chores') | default([]) %}
-                      {% if chores | length == 0 %}
-                      ✅ **All done for today!**
-                      {% else %}
-                      {% for chore in chores %}
-                      ☐ **{{ chore.name }}** *({{ chore.points }} pts)*
-                      {% endfor %}
-                      {% endif %}
-                    card_mod:
-                      style: |
-                        ha-card {
-                          background: rgba(255, 255, 255, 0.6) !important;
-                          border-radius: 12px;
-                          min-height: 80px;
-                        }
+                {{ {'type': 'markdown', 'content': '🏠 At Dads house'} }},
 
-                  - type: custom:button-card
-                    name: ✓ Complete Chore
-                    icon: mdi:checkbox-marked-circle-outline
-                    tap_action:
-                      action: navigate
-                      navigation_path: '#jacob-complete'
-                    styles:
-                      card:
-                        - background: var(--jacob-default-primary-color)
-                        - border-radius: 8px
-                        - padding: 8px
-                      icon:
-                        - color: white
-                      name:
-                        - color: white
-                        - font-size: 1em
+                {%- else -%}
 
-                  - type: horizontal-stack
-                    cards:
-                      - type: custom:button-card
-                        entity: input_number.jacob_weekly_points
-                        name: Week
-                        show_state: true
-                        icon: mdi:calendar-week
-                        styles:
-                          card:
-                            - background: rgba(255, 255, 255, 0.6)
-                            - border-radius: 12px
-                          icon:
-                            - color: var(--jacob-default-primary-color)
-                            - width: 20px
-                          name:
-                            - font-size: 0.75em
-                            - color: '#666'
-                          state:
-                            - color: var(--jacob-default-primary-color)
-                            - font-size: 1.3em
-                            - font-weight: bold
-                      - type: custom:button-card
-                        entity: input_number.jacob_monthly_points
-                        name: Month
-                        show_state: true
-                        icon: mdi:calendar-month
-                        styles:
-                          card:
-                            - background: rgba(255, 255, 255, 0.6)
-                            - border-radius: 12px
-                          icon:
-                            - color: var(--jacob-default-primary-color)
-                            - width: 20px
-                          name:
-                            - font-size: 0.75em
-                            - color: '#666'
-                          state:
-                            - color: var(--jacob-default-primary-color)
-                            - font-size: 1.3em
-                            - font-weight: bold
+                {%- set chores_raw = state_attr('sensor.jacob_chores_today',
+                'chores') -%}
 
-              ################################
-              # CONNOR
-              ################################
-              - type: vertical-stack
-                cards:
-                  - type: custom:button-card
-                    name: Connor
-                    icon: mdi:account
-                    styles:
-                      card:
-                        - background: var(--connor-default-primary-color)
-                        - border-radius: 12px
-                        - padding: 12px
-                      icon:
-                        - color: white
-                      name:
-                        - color: white
-                        - font-size: 1.5em
-                        - font-weight: bold
+                {%- set chores = chores_raw | from_json if chores_raw is string
+                else (chores_raw or []) -%}
 
-                  - type: markdown
-                    content: |
-                      {% set chores = state_attr('sensor.connor_chores_today', 'chores') | default([]) %}
-                      {% if chores | length == 0 %}
-                      ✅ **All done for today!**
-                      {% else %}
-                      {% for chore in chores %}
-                      ☐ **{{ chore.name }}** *({{ chore.points }} pts)*
-                      {% endfor %}
-                      {% endif %}
-                    card_mod:
-                      style: |
-                        ha-card {
-                          background: rgba(255, 255, 255, 0.6) !important;
-                          border-radius: 12px;
-                          min-height: 80px;
-                        }
+                {%- if chores | length == 0 -%}
 
-                  - type: custom:button-card
-                    name: ✓ Complete Chore
-                    icon: mdi:checkbox-marked-circle-outline
-                    tap_action:
-                      action: navigate
-                      navigation_path: '#connor-complete'
-                    styles:
-                      card:
-                        - background: var(--connor-default-primary-color)
-                        - border-radius: 8px
-                        - padding: 8px
-                      icon:
-                        - color: white
-                      name:
-                        - color: white
-                        - font-size: 1em
+                {{ {'type': 'markdown', 'content': '✅ All done for today!'} }},
 
-                  - type: horizontal-stack
-                    cards:
-                      - type: custom:button-card
-                        entity: input_number.connor_weekly_points
-                        name: Week
-                        show_state: true
-                        icon: mdi:calendar-week
-                        styles:
-                          card:
-                            - background: rgba(255, 255, 255, 0.6)
-                            - border-radius: 12px
-                          icon:
-                            - color: var(--connor-default-primary-color)
-                            - width: 20px
-                          name:
-                            - font-size: 0.75em
-                            - color: '#666'
-                          state:
-                            - color: var(--connor-default-primary-color)
-                            - font-size: 1.3em
-                            - font-weight: bold
-                      - type: custom:button-card
-                        entity: input_number.connor_monthly_points
-                        name: Month
-                        show_state: true
-                        icon: mdi:calendar-month
-                        styles:
-                          card:
-                            - background: rgba(255, 255, 255, 0.6)
-                            - border-radius: 12px
-                          icon:
-                            - color: var(--connor-default-primary-color)
-                            - width: 20px
-                          name:
-                            - font-size: 0.75em
-                            - color: '#666'
-                          state:
-                            - color: var(--connor-default-primary-color)
-                            - font-size: 1.3em
-                            - font-weight: bold
+                {%- else -%}
 
-          # =================================================================
-          # POPUP CARDS FOR COMPLETING CHORES
-          # =================================================================
-          # Using input_select to choose which chore, then a button to complete
-          # =================================================================
+                {%- for chore in chores -%}
 
-          # KAT POPUP
-          - type: custom:bubble-card
-            card_type: pop-up
-            hash: '#kat-complete'
-            name: Complete Kat's Chore
-            icon: mdi:checkbox-marked
-            styles: |
-              .bubble-button-card-container {
-                background: var(--kat-default-primary-color) !important;
+                {{ {'type': 'custom:button-card', 'entity':
+                'sensor.jacob_chores_today', 'show_icon': true, 'show_name':
+                true, 'show_state': false, 'icon': 'mdi:checkbox-marked-circle'
+                if chore.done else 'mdi:checkbox-blank-circle-outline', 'name':
+                chore.name ~ ' (' ~ chore.points ~ ' pts)', 'tap_action':
+                {'action': 'call-service', 'service': 'script.complete_chore',
+                'service_data': {'chore_id': chore.id, 'person': 'jacob',
+                'points': chore.points}}, 'styles': {'card': [{'background':
+                'rgba(0,0,0,0.05)' if chore.done else 'rgba(255,255,255,0.95)'},
+                {'border-radius': '8px'}, {'padding': '12px'}, {'margin-bottom':
+                '8px'}, {'opacity': '0.5' if chore.done else '1'}], 'icon':
+                [{'color': '#4CAF50'}, {'width': '28px'}, {'height': '28px'}],
+                'name': [{'font-size': '1.1em'}, {'font-weight': 'normal' if
+                chore.done else 'bold'}, {'text-decoration': 'line-through' if
+                chore.done else 'none'}, {'color': '#888' if chore.done else
+                'inherit'}, {'justify-self': 'start'}, {'white-space':
+                'normal'}, {'text-align': 'left'}], 'grid':
+                [{'grid-template-areas': '"i n"'}, {'grid-template-columns':
+                '40px 1fr'}]}} }},
+
+                {%- endfor -%}
+
+                {%- endif -%}
+
+                {%- endif -%}
+            grid_options:
+              columns: 24
+              rows: auto
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: input_number.jacob_weekly_points
+                name: Week
+                icon: none
+                card_mod:
+                  style: |
+                    ha-card {
+                      text-align: center;
+                    }
+                    .value {
+                      font-size: 1.8em;
+                      font-weight: bold;
+                      color: #4CAF50;
+                    }
+              - type: entity
+                entity: input_number.jacob_monthly_points
+                name: Month
+                icon: none
+                card_mod:
+                  style: |
+                    ha-card {
+                      text-align: center;
+                    }
+                    .value {
+                      font-size: 1.8em;
+                      font-weight: bold;
+                      color: #4CAF50;
+                    }
+            grid_options:
+              columns: 24
+              rows: auto
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:button-card
+            entity: person.connor_john
+            name: Connor
+            show_entity_picture: true
+            show_state: true
+            show_name: false
+            tap_action:
+              action: none
+            styles:
+              card:
+                - background: '#FF9800'
+                - border-radius: 12px
+                - padding: 16px
+              entity_picture:
+                - width: 150px
+                - height: 150px
+                - border-radius: 50%
+              state:
+                - color: white
+                - font-size: 1.4em
+                - font-weight: bold
+              custom_fields:
+                remaining:
+                  - color: rgba(255,255,255,0.8)
+                  - font-size: 1em
+                  - margin-top: 4px
+            grid_options:
+              columns: 24
+          - type: custom:auto-entities
+            show_empty: true
+            card:
+              type: vertical-stack
+            card_param: cards
+            filter:
+              template: >-
+                {%- set chores_raw = state_attr('sensor.connor_chores_today',
+                'chores') -%}
+
+                {%- set chores = chores_raw | from_json if chores_raw is string
+                else (chores_raw or []) -%}
+
+                {%- if chores | length == 0 -%}
+
+                {{ {'type': 'markdown', 'content': '✅ All done for today!'} }},
+
+                {%- else -%}
+
+                {%- for chore in chores -%}
+
+                {{ {'type': 'custom:button-card', 'entity':
+                'sensor.connor_chores_today', 'show_icon': true, 'show_name':
+                true, 'show_state': false, 'icon': 'mdi:checkbox-marked-circle'
+                if chore.done else 'mdi:checkbox-blank-circle-outline', 'name':
+                chore.name ~ ' (' ~ chore.points ~ ' pts)', 'tap_action':
+                {'action': 'call-service', 'service': 'script.complete_chore',
+                'service_data': {'chore_id': chore.id, 'person': 'connor',
+                'points': chore.points}}, 'styles': {'card': [{'background':
+                'rgba(0,0,0,0.05)' if chore.done else 'rgba(255,255,255,0.95)'},
+                {'border-radius': '8px'}, {'padding': '12px'}, {'margin-bottom':
+                '8px'}, {'opacity': '0.5' if chore.done else '1'}], 'icon':
+                [{'color': '#FF9800'}, {'width': '28px'}, {'height': '28px'}],
+                'name': [{'font-size': '1.1em'}, {'font-weight': 'normal' if
+                chore.done else 'bold'}, {'text-decoration': 'line-through' if
+                chore.done else 'none'}, {'color': '#888' if chore.done else
+                'inherit'}, {'justify-self': 'start'}, {'white-space':
+                'normal'}, {'text-align': 'left'}], 'grid':
+                [{'grid-template-areas': '"i n"'}, {'grid-template-columns':
+                '40px 1fr'}]}} }},
+
+                {%- endfor -%}
+
+                {%- endif -%}
+            grid_options:
+              columns: 24
+              rows: auto
+          - type: horizontal-stack
+            cards:
+              - type: entity
+                entity: input_number.connor_weekly_points
+                name: Week
+                icon: none
+                card_mod:
+                  style: |
+                    ha-card {
+                      text-align: center;
+                    }
+                    .value {
+                      font-size: 1.8em;
+                      font-weight: bold;
+                      color: #FF9800;
+                    }
+              - type: entity
+                entity: input_number.connor_monthly_points
+                name: Month
+                icon: none
+                card_mod:
+                  style: |
+                    ha-card {
+                      text-align: center;
+                    }
+                    .value {
+                      font-size: 1.8em;
+                      font-weight: bold;
+                      color: #FF9800;
+                    }
+            grid_options:
+              columns: 24
+              rows: auto
+    badges:
+      - type: entity
+        show_name: true
+        name: Downstairs
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_boolean.toggle
+          target:
+            entity_id: input_boolean.downstairs_vacuum_enabled
+        entity: input_boolean.downstairs_vacuum_enabled
+        card_mod:
+          refresh_interval: 1
+          style: |
+            :host {
+              --ha-badge-size: 80px !important;
+              --ha-badge-icon-size: 56px !important;
+              --ha-badge-font-size: 15px !important;
+              transform: scale(1.5) !important;
+            }
+            style_badge$: |
+              .content {
+                color: var(--badge-color) !important;
               }
-          - type: vertical-stack
-            cards:
-              - type: markdown
-                content: |
-                  {% set chores = state_attr('sensor.kat_chores_today', 'chores') | default([]) %}
-                  {% if chores | length == 0 %}
-                  ### ✅ No chores to complete!
-                  {% else %}
-                  ### Select chore from dropdown, then tap Complete:
-                  {% endif %}
-              - type: entities
-                entities:
-                  - entity: input_select.kat_chore_select
-                    name: Select Chore
-              - type: custom:button-card
-                name: ✓ Mark Complete
-                icon: mdi:check-bold
-                tap_action:
-                  action: call-service
-                  service: script.complete_kat_chore_from_select
-                styles:
-                  card:
-                    - background: var(--kat-default-primary-color)
-                    - border-radius: 8px
-                    - padding: 12px
-                  icon:
-                    - color: white
-                  name:
-                    - color: white
-                    - font-size: 1.2em
-
-          # BUCK POPUP
-          - type: custom:bubble-card
-            card_type: pop-up
-            hash: '#buck-complete'
-            name: Complete Buck's Chore
-            icon: mdi:checkbox-marked
-            styles: |
-              .bubble-button-card-container {
-                background: var(--buck-default-primary-color) !important;
+      - type: entity
+        show_name: true
+        name: Upstairs
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: input_boolean.toggle
+          target:
+            entity_id: input_boolean.upstairs_vacuum_enabled
+        entity: input_boolean.upstairs_vacuum_enabled
+        card_mod:
+          refresh_interval: 1
+          style: |
+            :host {
+              --ha-badge-size: 80px !important;
+              --ha-badge-icon-size: 56px !important;
+              --ha-badge-font-size: 15px !important;
+              transform: scale(1.5) !important;
+            }
+            style_badge$: |
+              .content {
+                color: var(--badge-color) !important;
               }
-          - type: vertical-stack
-            cards:
-              - type: markdown
-                content: |
-                  {% set chores = state_attr('sensor.buck_chores_today', 'chores') | default([]) %}
-                  {% if chores | length == 0 %}
-                  ### ✅ No chores to complete!
-                  {% else %}
-                  ### Select chore from dropdown, then tap Complete:
-                  {% endif %}
-              - type: entities
-                entities:
-                  - entity: input_select.buck_chore_select
-                    name: Select Chore
-              - type: custom:button-card
-                name: ✓ Mark Complete
-                icon: mdi:check-bold
-                tap_action:
-                  action: call-service
-                  service: script.complete_buck_chore_from_select
-                styles:
-                  card:
-                    - background: var(--buck-default-primary-color)
-                    - border-radius: 8px
-                    - padding: 12px
-                  icon:
-                    - color: white
-                  name:
-                    - color: white
-                    - font-size: 1.2em
-
-          # JACOB POPUP
-          - type: custom:bubble-card
-            card_type: pop-up
-            hash: '#jacob-complete'
-            name: Complete Jacob's Chore
-            icon: mdi:checkbox-marked
-            styles: |
-              .bubble-button-card-container {
-                background: var(--jacob-default-primary-color) !important;
-              }
-          - type: vertical-stack
-            cards:
-              - type: markdown
-                content: |
-                  {% set chores = state_attr('sensor.jacob_chores_today', 'chores') | default([]) %}
-                  {% if chores | length == 0 %}
-                  ### ✅ No chores to complete!
-                  {% else %}
-                  ### Select chore from dropdown, then tap Complete:
-                  {% endif %}
-              - type: entities
-                entities:
-                  - entity: input_select.jacob_chore_select
-                    name: Select Chore
-              - type: custom:button-card
-                name: ✓ Mark Complete
-                icon: mdi:check-bold
-                tap_action:
-                  action: call-service
-                  service: script.complete_jacob_chore_from_select
-                styles:
-                  card:
-                    - background: var(--jacob-default-primary-color)
-                    - border-radius: 8px
-                    - padding: 12px
-                  icon:
-                    - color: white
-                  name:
-                    - color: white
-                    - font-size: 1.2em
-
-          # CONNOR POPUP
-          - type: custom:bubble-card
-            card_type: pop-up
-            hash: '#connor-complete'
-            name: Complete Connor's Chore
-            icon: mdi:checkbox-marked
-            styles: |
-              .bubble-button-card-container {
-                background: var(--connor-default-primary-color) !important;
-              }
-          - type: vertical-stack
-            cards:
-              - type: markdown
-                content: |
-                  {% set chores = state_attr('sensor.connor_chores_today', 'chores') | default([]) %}
-                  {% if chores | length == 0 %}
-                  ### ✅ No chores to complete!
-                  {% else %}
-                  ### Select chore from dropdown, then tap Complete:
-                  {% endif %}
-              - type: entities
-                entities:
-                  - entity: input_select.connor_chore_select
-                    name: Select Chore
-              - type: custom:button-card
-                name: ✓ Mark Complete
-                icon: mdi:check-bold
-                tap_action:
-                  action: call-service
-                  service: script.complete_connor_chore_from_select
-                styles:
-                  card:
-                    - background: var(--connor-default-primary-color)
-                    - border-radius: 8px
-                    - padding: 12px
-                  icon:
-                    - color: white
-                  name:
-                    - color: white
-                    - font-size: 1.2em
   - type: sidebar
     path: ''
     icon: mdi:basket

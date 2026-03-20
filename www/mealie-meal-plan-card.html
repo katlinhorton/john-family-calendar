@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Ovo&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Ovo', serif;
+    background: rgba(255,255,255,0.6);
+    color: #333;
+    padding: 12px;
+    border-radius: 24px;
+  }
+
+  /* Week nav */
+  .week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+  .week-nav button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    color: #555;
+    padding: 2px 8px;
+    border-radius: 6px;
+    line-height: 1;
+    font-family: 'Ovo', serif;
+  }
+  .week-nav button:hover { background: rgba(0,0,0,0.06); }
+  .week-label {
+    font-size: 0.95em;
+    font-weight: 400;
+    color: #333;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-family: 'Ovo', serif;
+  }
+  .week-label:hover { background: rgba(0,0,0,0.06); }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: 52px repeat(7, 1fr);
+    gap: 1px;
+    background: #e8e8e8;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* Day headers */
+  .day-header {
+    background: #fff;
+    text-align: center;
+    padding: 8px 4px 6px;
+  }
+  .day-header .day-name {
+    font-size: 0.62em;
+    font-weight: 400;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'Ovo', serif;
+  }
+  .day-header .day-num {
+    font-size: 1.55em;
+    font-weight: 400;
+    color: #222;
+    line-height: 1.1;
+    margin-top: 1px;
+    display: inline-block;
+    min-width: 28px;
+    border-radius: 6px;
+    padding: 0 3px;
+    font-family: 'Ovo', serif;
+  }
+  .day-header.today .day-num {
+    background: #ff9800;
+    color: #fff;
+  }
+  .day-header.past .day-name { color: #ccc; }
+  .day-header.past .day-num { color: #ccc; }
+
+  .corner { background: #fff; }
+
+  /* Meal type label */
+  .meal-label {
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 2px;
+  }
+  .meal-label .meal-icon { font-size: 1em; }
+  .meal-label .meal-name {
+    font-size: 0.52em;
+    font-weight: 400;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'Ovo', serif;
+  }
+
+  /* Meal cells */
+  .meal-cell {
+    background: #fff;
+    min-height: 58px;
+    padding: 5px 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    text-align: center;
+  }
+  .meal-cell:hover { background: #f0f7ff; }
+  .meal-cell.past { background: #fafafa; }
+  .meal-cell.past:hover { background: #f2f2f2; }
+
+  .meal-cell.empty .plus {
+    font-size: 1.2em;
+    color: #ddd;
+    font-family: sans-serif;
+  }
+  .meal-cell.empty:hover .plus { color: #bbb; }
+
+  .meal-pill {
+    background: rgba(251,128,114,0.12);
+    color: #c0504d;
+    border-radius: 6px;
+    padding: 3px 5px;
+    font-size: 0.62em;
+    line-height: 1.3;
+    word-break: break-word;
+    width: 100%;
+    text-align: center;
+    font-family: 'Ovo', serif;
+  }
+  .meal-cell.past .meal-pill {
+    background: rgba(0,0,0,0.05);
+    color: #bbb;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    width: min(400px, 92vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    font-family: 'Ovo', serif;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .modal h3 {
+    font-size: 0.95em;
+    font-weight: 400;
+    color: #222;
+    font-family: 'Ovo', serif;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: #bbb;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+  .modal-close:hover { background: #f0f0f0; color: #555; }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    font-size: 0.88em;
+    margin-bottom: 10px;
+    background: #fafafa;
+    color: #333;
+    font-family: 'Ovo', serif;
+  }
+  .search-input:focus { outline: none; border-color: #fb8072; background: #fff; }
+
+  .recipe-list { display: flex; flex-direction: column; gap: 5px; }
+  .recipe-item {
+    padding: 8px 12px;
+    border: 1px solid #efefef;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.84em;
+    background: #fafafa;
+    transition: background 0.1s, border-color 0.1s;
+    font-family: 'Ovo', serif;
+  }
+  .recipe-item:hover { background: rgba(251,128,114,0.08); border-color: #fb8072; }
+  .recipe-item .recipe-name { color: #222; }
+  .recipe-item:hover .recipe-name { color: #c0504d; }
+  .recipe-item .recipe-desc {
+    font-size: 0.8em;
+    color: #bbb;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .no-results, .loading-msg {
+    font-size: 0.84em;
+    color: #bbb;
+    text-align: center;
+    padding: 16px 0;
+    font-family: 'Ovo', serif;
+  }
+
+  .open-mealie-btn {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 9px;
+    background: #f5f5f5;
+    color: #777;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.82em;
+    font-family: 'Ovo', serif;
+    text-align: center;
+  }
+  .open-mealie-btn:hover { background: #eee; }
+
+  .status-msg {
+    font-size: 0.78em;
+    text-align: center;
+    padding: 6px 0 0;
+    color: #bbb;
+    font-family: 'Ovo', serif;
+  }
+</style>
+</head>
+<body>
+
+<div class="week-nav">
+  <button id="prev-btn">&#8249;</button>
+  <span class="week-label" id="week-label" title="Click to return to current week"></span>
+  <button id="next-btn">&#8250;</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Add Meal</h3>
+      <button class="modal-close" id="modal-close">&#x2715;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const MEALIE_URL = 'https://mealie.heyjohn.family';
+const API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsb25nX3Rva2VuIjp0cnVlLCJpZCI6ImU5YjNhNDQyLTE5YTctNDkxMS1hOTg5LTQ2MDgxZDFkMTgwMiIsIm5hbWUiOiJob21lLWFzc2lzdGFudC0yIiwiaW50ZWdyYXRpb25faWQiOiJnZW5lcmljIiwiZXhwIjoxOTI4NDkzODI0fQ.bgDIc2AiP_LZ_OEr8amXC03k83BU0x8waZ4gG1TlTqY';
+const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEAL_ICONS = { breakfast: '🌅', lunch: '🥗', dinner: '🍲', snack: '🍪' };
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+let weekOffset = 0;
+let mealPlanData = {};
+let allRecipes = [];
+let searchTimeout = null;
+
+function getWeekStart(offset = 0) {
+  const today = new Date();
+  const sun = new Date(today);
+  sun.setDate(today.getDate() - today.getDay() + offset * 7);
+  sun.setHours(0, 0, 0, 0);
+  return sun;
+}
+
+function formatDate(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function isToday(d) {
+  return formatDate(d) === formatDate(new Date());
+}
+
+function isPast(d) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return d < today;
+}
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(MEALIE_URL + path, {
+    headers: { 'Authorization': 'Bearer ' + API_TOKEN, 'Content-Type': 'application/json', ...options.headers },
+    ...options
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
+async function loadMealPlan() {
+  const start = getWeekStart(weekOffset);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+
+  const opts = { month: 'short', day: 'numeric' };
+  document.getElementById('week-label').textContent =
+    start.toLocaleDateString('en-US', opts) + ' – ' + end.toLocaleDateString('en-US', opts);
+
+  try {
+    const data = await apiFetch(`/api/households/mealplans?start_date=${formatDate(start)}&end_date=${formatDate(end)}&perPage=100`);
+    mealPlanData = {};
+    for (const item of (data.items || data)) {
+      const key = item.date + '|' + item.entryType;
+      if (!mealPlanData[key]) mealPlanData[key] = [];
+      mealPlanData[key].push(item);
+    }
+  } catch (e) {
+    console.error('Failed to load meal plan', e);
+    mealPlanData = {};
+  }
+  renderGrid();
+}
+
+function renderGrid() {
+  const start = getWeekStart(weekOffset);
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  // Corner
+  const corner = document.createElement('div');
+  corner.className = 'corner';
+  grid.appendChild(corner);
+
+  // Day headers
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const el = document.createElement('div');
+    el.className = 'day-header' + (isToday(d) ? ' today' : isPast(d) ? ' past' : '');
+    el.innerHTML = `<div class="day-name">${DAYS[i]}</div><div class="day-num">${d.getDate()}</div>`;
+    grid.appendChild(el);
+  }
+
+  // Meal rows
+  for (const mealType of MEAL_TYPES) {
+    const label = document.createElement('div');
+    label.className = 'meal-label';
+    label.innerHTML = `<span class="meal-icon">${MEAL_ICONS[mealType]}</span><span class="meal-name">${mealType}</span>`;
+    grid.appendChild(label);
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const dateStr = formatDate(d);
+      const meals = mealPlanData[dateStr + '|' + mealType] || [];
+      const past = isPast(d);
+
+      const cell = document.createElement('div');
+      cell.className = 'meal-cell ' + (meals.length > 0 ? 'filled' : 'empty') + (past ? ' past' : '');
+
+      if (meals.length > 0) {
+        meals.forEach(m => {
+          const pill = document.createElement('div');
+          pill.className = 'meal-pill';
+          pill.textContent = m.recipe ? m.recipe.name : (m.title || '?');
+          cell.appendChild(pill);
+        });
+        cell.addEventListener('click', () => openRecipe(meals[0]));
+      } else {
+        const plus = document.createElement('span');
+        plus.className = 'plus';
+        plus.textContent = '+';
+        cell.appendChild(plus);
+        cell.addEventListener('click', () => openAddModal(dateStr, mealType));
+      }
+
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function openRecipe(meal) {
+  if (meal.recipe && meal.recipe.slug) {
+    window.open(MEALIE_URL + '/g/home/r/' + meal.recipe.slug, '_blank');
+  } else {
+    window.open(MEALIE_URL + '/meal-plan', '_blank');
+  }
+}
+
+let pendingDate = null;
+let pendingMealType = null;
+
+async function openAddModal(date, mealType) {
+  pendingDate = date;
+  pendingMealType = mealType;
+
+  const d = new Date(date + 'T00:00:00');
+  const dayLabel = d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  document.getElementById('modal-title').textContent =
+    `Add ${mealType.charAt(0).toUpperCase() + mealType.slice(1)} — ${dayLabel}`;
+
+  document.getElementById('modal-body').innerHTML = `
+    <input class="search-input" id="recipe-search" placeholder="Search recipes..." autocomplete="off" />
+    <div class="recipe-list" id="recipe-results"><div class="loading-msg">Loading recipes…</div></div>
+    <button class="open-mealie-btn" id="open-mealie-btn">Open Mealie Meal Planner ↗</button>
+    <div class="status-msg" id="status-msg"></div>
+  `;
+
+  document.getElementById('open-mealie-btn').addEventListener('click', () => {
+    window.open(MEALIE_URL + '/meal-plan', '_blank');
+  });
+  document.getElementById('recipe-search').addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => renderRecipeResults(e.target.value), 250);
+  });
+
+  document.getElementById('modal-overlay').classList.add('open');
+
+  if (allRecipes.length === 0) {
+    try {
+      const data = await apiFetch('/api/recipes?perPage=500&orderBy=name&orderDirection=asc');
+      allRecipes = data.items || data;
+    } catch (e) { allRecipes = []; }
+  }
+  renderRecipeResults('');
+}
+
+function renderRecipeResults(query) {
+  const container = document.getElementById('recipe-results');
+  if (!container) return;
+  const q = query.toLowerCase().trim();
+  const filtered = q
+    ? allRecipes.filter(r => r.name.toLowerCase().includes(q) || (r.description || '').toLowerCase().includes(q))
+    : allRecipes;
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="no-results">No recipes found</div>';
+    return;
+  }
+  container.innerHTML = '';
+  filtered.slice(0, 30).forEach(recipe => {
+    const item = document.createElement('div');
+    item.className = 'recipe-item';
+    item.innerHTML = `<div class="recipe-name">${recipe.name}</div>${recipe.description ? `<div class="recipe-desc">${recipe.description}</div>` : ''}`;
+    item.addEventListener('click', () => addMealPlan(recipe));
+    container.appendChild(item);
+  });
+}
+
+async function addMealPlan(recipe) {
+  const statusEl = document.getElementById('status-msg');
+  if (statusEl) statusEl.textContent = 'Adding…';
+  try {
+    await apiFetch('/api/households/mealplans', {
+      method: 'POST',
+      body: JSON.stringify({ date: pendingDate, entryType: pendingMealType, recipeId: recipe.id, title: recipe.name })
+    });
+    closeModal();
+    await loadMealPlan();
+  } catch (e) {
+    if (statusEl) statusEl.textContent = 'Error adding meal. Try again.';
+    console.error(e);
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  pendingDate = null;
+  pendingMealType = null;
+}
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+});
+document.getElementById('prev-btn').addEventListener('click', () => { weekOffset--; loadMealPlan(); });
+document.getElementById('next-btn').addEventListener('click', () => { weekOffset++; loadMealPlan(); });
+document.getElementById('week-label').addEventListener('click', () => { weekOffset = 0; loadMealPlan(); });
+
+loadMealPlan();
+</script>
+</body>
+</html>

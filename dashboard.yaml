@@ -151,7 +151,7 @@ views:
                 styles: |
                   .bubble-button-background {
                     opacity: 1 !important;
-                    background-color: ${hass.states['input_text.family_calendar_filter'].state === '.*' ? 'light-grey' : '#4A90E2'} !important;
+                    background-color: ${hass.states['input_text.family_calendar_filter'].state === '^$' ? '#4A90E2' : 'var(--card-background-color)'} !important;
                   }
                 entity: input_boolean.family_calendar_show
               - type: custom:bubble-card
@@ -871,22 +871,12 @@ views:
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
                         const dayOfWeek = today.getDay();
-                        
-                        // First of target month
                         const firstOfMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-                        
-                        // First Sunday of the calendar grid (may be in previous month)
                         const firstSunday = new Date(firstOfMonth);
                         firstSunday.setDate(1 - firstOfMonth.getDay());
-                        
-                        // Current week's Sunday
                         const currentSunday = new Date(today);
                         currentSunday.setDate(today.getDate() - dayOfWeek);
-                        
-                        // Weeks between current Sunday and target first Sunday
                         const weeksDiff = Math.round((firstSunday - currentSunday) / (7 * 24 * 60 * 60 * 1000));
-                        
-                        // Use same pattern as week view
                         return -dayOfWeek + (weeksDiff * 7);
                       })()
                     MONTH_DAYS: |
@@ -1149,29 +1139,21 @@ views:
                 name: Week
                 icon: none
                 card_mod:
-                  style: |
-                    ha-card {
-                      text-align: center;
-                    }
-                    .value {
-                      font-size: 1.8em;
-                      font-weight: bold;
-                      color: #E91E63;
-                    }
+                  style: >
+                    ha-card { text-align: center; }
+
+                    .value { font-size: 1.8em; font-weight: bold; color:
+                    #E91E63; }
               - type: entity
                 entity: input_number.kat_monthly_points
                 name: Month
                 icon: none
                 card_mod:
-                  style: |
-                    ha-card {
-                      text-align: center;
-                    }
-                    .value {
-                      font-size: 1.8em;
-                      font-weight: bold;
-                      color: #E91E63;
-                    }
+                  style: >
+                    ha-card { text-align: center; }
+
+                    .value { font-size: 1.8em; font-weight: bold; color:
+                    #E91E63; }
             grid_options:
               columns: 24
               rows: auto
@@ -1259,29 +1241,21 @@ views:
                 name: Week
                 icon: none
                 card_mod:
-                  style: |
-                    ha-card {
-                      text-align: center;
-                    }
-                    .value {
-                      font-size: 1.8em;
-                      font-weight: bold;
-                      color: #2196F3;
-                    }
+                  style: >
+                    ha-card { text-align: center; }
+
+                    .value { font-size: 1.8em; font-weight: bold; color:
+                    #2196F3; }
               - type: entity
                 entity: input_number.buck_monthly_points
                 name: Month
                 icon: none
                 card_mod:
-                  style: |
-                    ha-card {
-                      text-align: center;
-                    }
-                    .value {
-                      font-size: 1.8em;
-                      font-weight: bold;
-                      color: #2196F3;
-                    }
+                  style: >
+                    ha-card { text-align: center; }
+
+                    .value { font-size: 1.8em; font-weight: bold; color:
+                    #2196F3; }
             grid_options:
               columns: 24
               rows: auto
@@ -1381,29 +1355,21 @@ views:
                 name: Week
                 icon: none
                 card_mod:
-                  style: |
-                    ha-card {
-                      text-align: center;
-                    }
-                    .value {
-                      font-size: 1.8em;
-                      font-weight: bold;
-                      color: #4CAF50;
-                    }
+                  style: >
+                    ha-card { text-align: center; }
+
+                    .value { font-size: 1.8em; font-weight: bold; color:
+                    #4CAF50; }
               - type: entity
                 entity: input_number.jacob_monthly_points
                 name: Month
                 icon: none
                 card_mod:
-                  style: |
-                    ha-card {
-                      text-align: center;
-                    }
-                    .value {
-                      font-size: 1.8em;
-                      font-weight: bold;
-                      color: #4CAF50;
-                    }
+                  style: >
+                    ha-card { text-align: center; }
+
+                    .value { font-size: 1.8em; font-weight: bold; color:
+                    #4CAF50; }
             grid_options:
               columns: 24
               rows: auto
@@ -1492,29 +1458,21 @@ views:
                 name: Week
                 icon: none
                 card_mod:
-                  style: |
-                    ha-card {
-                      text-align: center;
-                    }
-                    .value {
-                      font-size: 1.8em;
-                      font-weight: bold;
-                      color: #FF9800;
-                    }
+                  style: >
+                    ha-card { text-align: center; }
+
+                    .value { font-size: 1.8em; font-weight: bold; color:
+                    #FF9800; }
               - type: entity
                 entity: input_number.connor_monthly_points
                 name: Month
                 icon: none
                 card_mod:
-                  style: |
-                    ha-card {
-                      text-align: center;
-                    }
-                    .value {
-                      font-size: 1.8em;
-                      font-weight: bold;
-                      color: #FF9800;
-                    }
+                  style: >
+                    ha-card { text-align: center; }
+
+                    .value { font-size: 1.8em; font-weight: bold; color:
+                    #FF9800; }
             grid_options:
               columns: 24
               rows: auto
@@ -1539,9 +1497,7 @@ views:
               transform: scale(1.5) !important;
             }
             style_badge$: |
-              .content {
-                color: var(--badge-color) !important;
-              }
+              .content { color: var(--badge-color) !important; }
       - type: entity
         show_name: true
         name: Upstairs
@@ -1562,14 +1518,37 @@ views:
               transform: scale(1.5) !important;
             }
             style_badge$: |
-              .content {
-                color: var(--badge-color) !important;
-              }
-  - type: sidebar
-    path: ''
-    icon: mdi:basket
-    cards: []
-  - type: sidebar
-    path: ''
+              .content { color: var(--badge-color) !important; }
+  - type: sections
+    max_columns: 12
+    path: meal-plan
     icon: mdi:food
-    cards: []
+    title: Meal Plan
+    sections:
+      - type: grid
+        cards:
+          - type: iframe
+            url: /local/mealie-meal-plan-card.html
+            aspect_ratio: 75%
+        column_span: 12
+  - type: sections
+    max_columns: 12
+    path: shopping-list
+    icon: mdi:basket
+    title: Shopping
+    sections:
+      - type: grid
+        cards:
+          - type: todo-list
+            entity: todo.mealie_shopping
+            title: Shopping
+            grid_options:
+              columns: 6
+              rows: auto
+          - type: todo-list
+            entity: todo.mealie_basics
+            title: Basics
+            grid_options:
+              columns: 6
+              rows: auto
+        column_span: 12

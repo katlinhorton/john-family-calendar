@@ -1,0 +1,106 @@
+# ============================================================
+# MEALIE MEAL PLANNING PACKAGE
+# Uses HA Mealie integration calendar entities
+# Fetches events via calendar.get_events (clean string data)
+# ============================================================
+
+# ============================================================
+# INPUT HELPERS
+# ============================================================
+input_text:
+  mealie_url:
+    name: Mealie URL
+    initial: !secret mealie_url
+
+  mealie_config_entry_id:
+    name: Mealie Config Entry ID
+    initial: !secret mealie_config_entry_id
+    max: 255
+
+# ============================================================
+# TEMPLATE SENSORS — Weekly meal plan from calendar events
+# ============================================================
+template:
+  - triggers:
+      - trigger: time_pattern
+        minutes: "/15"
+      - trigger: homeassistant
+        event: start
+    actions:
+      - action: calendar.get_events
+        target:
+          entity_id:
+            - calendar.mealie_breakfast
+            - calendar.mealie_lunch
+            - calendar.mealie_dinner
+            - calendar.mealie_snack
+        data:
+          start_date_time: >-
+            {{ today_at('00:00') | string }}
+          end_date_time: >-
+            {{ (today_at('00:00') + timedelta(days=7)) | string }}
+        response_variable: cal_events
+    sensor:
+      - name: "Mealie Week Breakfast"
+        unique_id: mealie_week_breakfast_cal
+        state: >-
+          {{ (cal_events['calendar.mealie_breakfast'].events | default([])) | length }} meals
+        attributes:
+          events: >-
+            {{ cal_events['calendar.mealie_breakfast'].events | default([]) }}
+
+      - name: "Mealie Week Lunch"
+        unique_id: mealie_week_lunch_cal
+        state: >-
+          {{ (cal_events['calendar.mealie_lunch'].events | default([])) | length }} meals
+        attributes:
+          events: >-
+            {{ cal_events['calendar.mealie_lunch'].events | default([]) }}
+
+      - name: "Mealie Week Dinner"
+        unique_id: mealie_week_dinner_cal
+        state: >-
+          {{ (cal_events['calendar.mealie_dinner'].events | default([])) | length }} meals
+        attributes:
+          events: >-
+            {{ cal_events['calendar.mealie_dinner'].events | default([]) }}
+
+      - name: "Mealie Week Snack"
+        unique_id: mealie_week_snack_cal
+        state: >-
+          {{ (cal_events['calendar.mealie_snack'].events | default([])) | length }} meals
+        attributes:
+          events: >-
+            {{ cal_events['calendar.mealie_snack'].events | default([]) }}
+
+# ============================================================
+# SCRIPTS
+# ============================================================
+script:
+  add_meal_to_plan:
+    alias: "Add Meal to Plan"
+    fields:
+      date:
+        description: "Date in YYYY-MM-DD format"
+      entry_type:
+        description: "breakfast, lunch, dinner, or snack"
+      recipe_id:
+        description: "Mealie recipe ID"
+    sequence:
+      - action: mealie.set_mealplan
+        data:
+          config_entry_id: "{{ states('input_text.mealie_config_entry_id') }}"
+          date: "{{ date }}"
+          entry_type: "{{ entry_type }}"
+          recipe_id: "{{ recipe_id }}"
+
+  refresh_meal_plan:
+    alias: "Refresh Meal Plan"
+    sequence:
+      - action: homeassistant.update_entity
+        target:
+          entity_id:
+            - calendar.mealie_breakfast
+            - calendar.mealie_lunch
+            - calendar.mealie_dinner
+            - calendar.mealie_snack

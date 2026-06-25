@@ -4,12 +4,6 @@
 # Save to: /config/packages/grocy_chores.yaml
 #
 # Uses the existing sensor.grocy_chores from Grocy integration
-#
-# User IDs:
-#   2 = Buck (Curtis)
-#   3 = Kat
-#   4 = Jacob
-#   5 = Connor
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -17,8 +11,8 @@
 # -----------------------------------------------------------------------------
 
 input_boolean:
-  jacob_home_today:
-    name: Jacob Home Today
+  __PRESENCE_SLUG___home_today:
+    name: __PRESENCE_NAME__ Home Today
     icon: mdi:home-account
 
 # -----------------------------------------------------------------------------
@@ -26,86 +20,33 @@ input_boolean:
 # -----------------------------------------------------------------------------
 
 input_text:
-  kat_completed_chores:
-    name: Kat Completed Chores
+  # __LOOP_PERSONS_START__
+  person1_completed_chores:
+    name: Person1 Completed Chores
     initial: ""
     max: 255
-
-  buck_completed_chores:
-    name: Buck Completed Chores
-    initial: ""
-    max: 255
-
-  jacob_completed_chores:
-    name: Jacob Completed Chores
-    initial: ""
-    max: 255
-
-  connor_completed_chores:
-    name: Connor Completed Chores
-    initial: ""
-    max: 255
+  # __LOOP_PERSONS_END__
 
 # -----------------------------------------------------------------------------
 # INPUT NUMBERS - Point tracking
 # -----------------------------------------------------------------------------
 
 input_number:
-  kat_weekly_points:
-    name: Kat Weekly Points
+  # __LOOP_PERSONS_START__
+  person1_weekly_points:
+    name: Person1 Weekly Points
     min: 0
     max: 1000
     step: 1
     mode: box
 
-  kat_monthly_points:
-    name: Kat Monthly Points
+  person1_monthly_points:
+    name: Person1 Monthly Points
     min: 0
     max: 5000
     step: 1
     mode: box
-
-  buck_weekly_points:
-    name: Buck Weekly Points
-    min: 0
-    max: 1000
-    step: 1
-    mode: box
-
-  buck_monthly_points:
-    name: Buck Monthly Points
-    min: 0
-    max: 5000
-    step: 1
-    mode: box
-
-  jacob_weekly_points:
-    name: Jacob Weekly Points
-    min: 0
-    max: 1000
-    step: 1
-    mode: box
-
-  jacob_monthly_points:
-    name: Jacob Monthly Points
-    min: 0
-    max: 5000
-    step: 1
-    mode: box
-
-  connor_weekly_points:
-    name: Connor Weekly Points
-    min: 0
-    max: 1000
-    step: 1
-    mode: box
-
-  connor_monthly_points:
-    name: Connor Monthly Points
-    min: 0
-    max: 5000
-    step: 1
-    mode: box
+  # __LOOP_PERSONS_END__
 
 # -----------------------------------------------------------------------------
 # TEMPLATE SENSORS - Per-person chore lists
@@ -113,18 +54,22 @@ input_number:
 
 template:
   - sensor:
-      # KAT (user_id: 3)
-      - name: "Kat Chores Today"
-        unique_id: kat_chores_today
+    # __LOOP_PERSONS_START__
+      # PERSON 1 (grocy user_id: see my-config.yaml)
+      - name: "Person1 Chores Today"
+        unique_id: person1_chores_today
         state: >
+#PRESENCE:          {% if is_state('input_boolean.person1_home_today', 'off') %}
+#PRESENCE:            0
+#PRESENCE:          {% else %}
           {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
           {% set dow = now().strftime('%A') | lower %}
-          {% set completed = states('input_text.kat_completed_chores') | default('') %}
+          {% set completed = states('input_text.person1_completed_chores') | default('') %}
           {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
           {% set ns = namespace(count=0) %}
           {% for chore in chores %}
             {% set assigned = (chore.assignment_config | default('')) | string %}
-            {% if '3' in assigned.split(',') | map('trim') | list %}
+            {% if '__GROCY_ID_1__' in assigned.split(',') | map('trim') | list %}
               {% set period = chore.period_type | default('') %}
               {% set config = (chore.period_config | default('')) | string | lower %}
               {% set show = false %}
@@ -136,16 +81,21 @@ template:
             {% endif %}
           {% endfor %}
           {{ ns.count }}
+#PRESENCE:          {% endif %}
         attributes:
+#PRESENCE:          person1_home: "{{ is_state('input_boolean.person1_home_today', 'on') }}"
           chores: >
+#PRESENCE:            {% if is_state('input_boolean.person1_home_today', 'off') %}
+#PRESENCE:              []
+#PRESENCE:            {% else %}
             {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
             {% set dow = now().strftime('%A') | lower %}
-            {% set completed = states('input_text.kat_completed_chores') | default('') %}
+            {% set completed = states('input_text.person1_completed_chores') | default('') %}
             {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
             {% set ns = namespace(result=[]) %}
             {% for chore in chores %}
               {% set assigned = (chore.assignment_config | default('')) | string %}
-              {% if '3' in assigned.split(',') | map('trim') | list %}
+              {% if '__GROCY_ID_1__' in assigned.split(',') | map('trim') | list %}
                 {% set period = chore.period_type | default('') %}
                 {% set config = (chore.period_config | default('')) | string | lower %}
                 {% set show = false %}
@@ -161,162 +111,8 @@ template:
               {% endif %}
             {% endfor %}
             {{ ns.result | to_json }}
-
-      # BUCK (user_id: 2)
-      - name: "Buck Chores Today"
-        unique_id: buck_chores_today
-        state: >
-          {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
-          {% set dow = now().strftime('%A') | lower %}
-          {% set completed = states('input_text.buck_completed_chores') | default('') %}
-          {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
-          {% set ns = namespace(count=0) %}
-          {% for chore in chores %}
-            {% set assigned = (chore.assignment_config | default('')) | string %}
-            {% if '2' in assigned.split(',') | map('trim') | list %}
-              {% set period = chore.period_type | default('') %}
-              {% set config = (chore.period_config | default('')) | string | lower %}
-              {% set show = false %}
-              {% if period == 'daily' %}{% set show = true %}{% endif %}
-              {% if period == 'weekly' and dow in config %}{% set show = true %}{% endif %}
-              {% if show and (chore.id | string) not in completed_ids %}
-                {% set ns.count = ns.count + 1 %}
-              {% endif %}
-            {% endif %}
-          {% endfor %}
-          {{ ns.count }}
-        attributes:
-          chores: >
-            {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
-            {% set dow = now().strftime('%A') | lower %}
-            {% set completed = states('input_text.buck_completed_chores') | default('') %}
-            {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
-            {% set ns = namespace(result=[]) %}
-            {% for chore in chores %}
-              {% set assigned = (chore.assignment_config | default('')) | string %}
-              {% if '2' in assigned.split(',') | map('trim') | list %}
-                {% set period = chore.period_type | default('') %}
-                {% set config = (chore.period_config | default('')) | string | lower %}
-                {% set show = false %}
-                {% if period == 'daily' %}{% set show = true %}{% endif %}
-                {% if period == 'weekly' and dow in config %}{% set show = true %}{% endif %}
-                {% if show %}
-                  {% set desc = chore.description | default('0') %}
-                  {% set points = desc | regex_findall('\\d+') %}
-                  {% set point_val = points[0] | int(0) if points else 0 %}
-                  {% set is_done = (chore.id | string) in completed_ids %}
-                  {% set ns.result = ns.result + [{"id": chore.id, "name": chore.name, "points": point_val, "done": is_done}] %}
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.result | to_json }}
-
-      # JACOB (user_id: 4)
-      - name: "Jacob Chores Today"
-        unique_id: jacob_chores_today
-        state: >
-          {% if is_state('input_boolean.jacob_home_today', 'off') %}
-            0
-          {% else %}
-            {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
-            {% set dow = now().strftime('%A') | lower %}
-            {% set completed = states('input_text.jacob_completed_chores') | default('') %}
-            {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
-            {% set ns = namespace(count=0) %}
-            {% for chore in chores %}
-              {% set assigned = (chore.assignment_config | default('')) | string %}
-              {% if '4' in assigned.split(',') | map('trim') | list %}
-                {% set period = chore.period_type | default('') %}
-                {% set config = (chore.period_config | default('')) | string | lower %}
-                {% set show = false %}
-                {% if period == 'daily' %}{% set show = true %}{% endif %}
-                {% if period == 'weekly' and dow in config %}{% set show = true %}{% endif %}
-                {% if show and (chore.id | string) not in completed_ids %}
-                  {% set ns.count = ns.count + 1 %}
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.count }}
-          {% endif %}
-        attributes:
-          jacob_home: "{{ is_state('input_boolean.jacob_home_today', 'on') }}"
-          chores: >
-            {% if is_state('input_boolean.jacob_home_today', 'off') %}
-              []
-            {% else %}
-              {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
-              {% set dow = now().strftime('%A') | lower %}
-              {% set completed = states('input_text.jacob_completed_chores') | default('') %}
-              {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
-              {% set ns = namespace(result=[]) %}
-              {% for chore in chores %}
-                {% set assigned = (chore.assignment_config | default('')) | string %}
-                {% if '4' in assigned.split(',') | map('trim') | list %}
-                  {% set period = chore.period_type | default('') %}
-                  {% set config = (chore.period_config | default('')) | string | lower %}
-                  {% set show = false %}
-                  {% if period == 'daily' %}{% set show = true %}{% endif %}
-                  {% if period == 'weekly' and dow in config %}{% set show = true %}{% endif %}
-                  {% if show %}
-                    {% set desc = chore.description | default('0') %}
-                    {% set points = desc | regex_findall('\\d+') %}
-                    {% set point_val = points[0] | int(0) if points else 0 %}
-                    {% set is_done = (chore.id | string) in completed_ids %}
-                    {% set ns.result = ns.result + [{"id": chore.id, "name": chore.name, "points": point_val, "done": is_done}] %}
-                  {% endif %}
-                {% endif %}
-              {% endfor %}
-              {{ ns.result | to_json }}
-            {% endif %}
-
-      # CONNOR (user_id: 5)
-      - name: "Connor Chores Today"
-        unique_id: connor_chores_today
-        state: >
-          {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
-          {% set dow = now().strftime('%A') | lower %}
-          {% set completed = states('input_text.connor_completed_chores') | default('') %}
-          {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
-          {% set ns = namespace(count=0) %}
-          {% for chore in chores %}
-            {% set assigned = (chore.assignment_config | default('')) | string %}
-            {% if '5' in assigned.split(',') | map('trim') | list %}
-              {% set period = chore.period_type | default('') %}
-              {% set config = (chore.period_config | default('')) | string | lower %}
-              {% set show = false %}
-              {% if period == 'daily' %}{% set show = true %}{% endif %}
-              {% if period == 'weekly' and dow in config %}{% set show = true %}{% endif %}
-              {% if show and (chore.id | string) not in completed_ids %}
-                {% set ns.count = ns.count + 1 %}
-              {% endif %}
-            {% endif %}
-          {% endfor %}
-          {{ ns.count }}
-        attributes:
-          chores: >
-            {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
-            {% set dow = now().strftime('%A') | lower %}
-            {% set completed = states('input_text.connor_completed_chores') | default('') %}
-            {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
-            {% set ns = namespace(result=[]) %}
-            {% for chore in chores %}
-              {% set assigned = (chore.assignment_config | default('')) | string %}
-              {% if '5' in assigned.split(',') | map('trim') | list %}
-                {% set period = chore.period_type | default('') %}
-                {% set config = (chore.period_config | default('')) | string | lower %}
-                {% set show = false %}
-                {% if period == 'daily' %}{% set show = true %}{% endif %}
-                {% if period == 'weekly' and dow in config %}{% set show = true %}{% endif %}
-                {% if show %}
-                  {% set desc = chore.description | default('0') %}
-                  {% set points = desc | regex_findall('\\d+') %}
-                  {% set point_val = points[0] | int(0) if points else 0 %}
-                  {% set is_done = (chore.id | string) in completed_ids %}
-                  {% set ns.result = ns.result + [{"id": chore.id, "name": chore.name, "points": point_val, "done": is_done}] %}
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.result | to_json }}
+#PRESENCE:            {% endif %}
+    # __LOOP_PERSONS_END__
 
 # -----------------------------------------------------------------------------
 # SCRIPTS
@@ -330,58 +126,56 @@ script:
       chore_id:
         description: The chore ID
       person:
-        description: Person name (kat, buck, jacob, connor)
+        description: "Person slug (person1, person2, person3, person4)"
       points:
         description: Points to award/remove
     sequence:
-      - variables:
-          input_entity: "input_text.{{ person }}_completed_chores"
-          weekly_entity: "input_number.{{ person }}_weekly_points"
-          monthly_entity: "input_number.{{ person }}_monthly_points"
-          points_val: "{{ points | int(0) }}"
-      - variables:
-          current_text: "{{ states(input_entity) | default('', true) | string }}"
-      - variables:
-          completed_list: "{{ current_text.split(',') | map('trim') | reject('eq', '') | list }}"
-          chore_str: "{{ chore_id | string }}"
-      - variables:
-          already_done: "{{ chore_str in completed_list }}"
-      - choose:
-          - conditions:
-              - condition: template
-                value_template: "{{ already_done }}"
-            sequence:
-              - service: input_text.set_value
-                target:
-                  entity_id: "{{ input_entity }}"
-                data:
-                  value: "{{ completed_list | reject('eq', chore_str) | join(',') }}"
-              - service: input_number.set_value
-                target:
-                  entity_id: "{{ weekly_entity }}"
-                data:
-                  value: "{{ [states(weekly_entity) | int(0) - points_val, 0] | max }}"
-              - service: input_number.set_value
-                target:
-                  entity_id: "{{ monthly_entity }}"
-                data:
-                  value: "{{ [states(monthly_entity) | int(0) - points_val, 0] | max }}"
-        default:
+      - if:
+          - condition: template
+            value_template: >
+              {% set current = states('input_text.' ~ person ~ '_completed_chores') | default('', true) | string %}
+              {% set ids = current.split(',') | map('trim') | reject('eq', '') | list %}
+              {{ (chore_id | string) in ids }}
+        then:
+          # Remove chore and subtract points
           - service: input_text.set_value
             target:
-              entity_id: "{{ input_entity }}"
+              entity_id: "input_text.{{ person }}_completed_chores"
             data:
-              value: "{{ (completed_list + [chore_str]) | join(',') }}"
+              value: >
+                {% set current = states('input_text.' ~ person ~ '_completed_chores') | default('', true) | string %}
+                {% set ids = current.split(',') | map('trim') | reject('eq', '') | list %}
+                {{ ids | reject('eq', chore_id | string) | join(',') }}
           - service: input_number.set_value
             target:
-              entity_id: "{{ weekly_entity }}"
+              entity_id: "input_number.{{ person }}_weekly_points"
             data:
-              value: "{{ states(weekly_entity) | int(0) + points_val }}"
+              value: "{{ [states('input_number.' ~ person ~ '_weekly_points') | int(0) - (points | int(0)), 0] | max }}"
           - service: input_number.set_value
             target:
-              entity_id: "{{ monthly_entity }}"
+              entity_id: "input_number.{{ person }}_monthly_points"
             data:
-              value: "{{ states(monthly_entity) | int(0) + points_val }}"
+              value: "{{ [states('input_number.' ~ person ~ '_monthly_points') | int(0) - (points | int(0)), 0] | max }}"
+        else:
+          # Add chore and award points
+          - service: input_text.set_value
+            target:
+              entity_id: "input_text.{{ person }}_completed_chores"
+            data:
+              value: >
+                {% set current = states('input_text.' ~ person ~ '_completed_chores') | default('', true) | string %}
+                {% set ids = current.split(',') | map('trim') | reject('eq', '') | list %}
+                {{ (ids + [chore_id | string]) | join(',') }}
+          - service: input_number.set_value
+            target:
+              entity_id: "input_number.{{ person }}_weekly_points"
+            data:
+              value: "{{ states('input_number.' ~ person ~ '_weekly_points') | int(0) + (points | int(0)) }}"
+          - service: input_number.set_value
+            target:
+              entity_id: "input_number.{{ person }}_monthly_points"
+            data:
+              value: "{{ states('input_number.' ~ person ~ '_monthly_points') | int(0) + (points | int(0)) }}"
 
 # -----------------------------------------------------------------------------
 # AUTOMATIONS
@@ -397,10 +191,9 @@ automation:
       - service: input_text.set_value
         target:
           entity_id:
-            - input_text.kat_completed_chores
-            - input_text.buck_completed_chores
-            - input_text.jacob_completed_chores
-            - input_text.connor_completed_chores
+            # __LOOP_PERSONS_START__
+            - input_text.person1_completed_chores
+            # __LOOP_PERSONS_END__
         data:
           value: ""
 
@@ -417,10 +210,9 @@ automation:
       - service: input_number.set_value
         target:
           entity_id:
-            - input_number.kat_weekly_points
-            - input_number.buck_weekly_points
-            - input_number.jacob_weekly_points
-            - input_number.connor_weekly_points
+            # __LOOP_PERSONS_START__
+            - input_number.person1_weekly_points
+            # __LOOP_PERSONS_END__
         data:
           value: 0
 
@@ -436,15 +228,14 @@ automation:
       - service: input_number.set_value
         target:
           entity_id:
-            - input_number.kat_monthly_points
-            - input_number.buck_monthly_points
-            - input_number.jacob_monthly_points
-            - input_number.connor_monthly_points
+            # __LOOP_PERSONS_START__
+            - input_number.person1_monthly_points
+            # __LOOP_PERSONS_END__
         data:
           value: 0
 
-  - alias: "Chores: Check Jacob Presence"
-    id: chores_jacob_presence
+  - alias: "Chores: Check __PRESENCE_NAME__ Presence"
+    id: chores_presence_check
     trigger:
       - platform: time
         at: "00:00:00"
@@ -453,13 +244,13 @@ automation:
     action:
       - if:
           - condition: state
-            entity_id: person.jacob_hogan
+            entity_id: __PRESENCE_PERSON_ENTITY__
             state: "home"
         then:
           - service: input_boolean.turn_on
             target:
-              entity_id: input_boolean.jacob_home_today
+              entity_id: input_boolean.__PRESENCE_SLUG___home_today
         else:
           - service: input_boolean.turn_off
             target:
-              entity_id: input_boolean.jacob_home_today
+              entity_id: input_boolean.__PRESENCE_SLUG___home_today

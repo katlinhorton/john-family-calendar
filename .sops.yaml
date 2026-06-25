@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: my-config\.yaml$
+    age: age1mlps0u0q4hyavqmc2luux6hyggys506tmuldsm4f2n8grdne99aqzfgxp6

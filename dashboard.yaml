@@ -3,6 +3,7 @@ views:
     max_columns: 10
     path: family-calendar
     sections:
+      # --- WEATHER / CLOCK SECTION ---
       - type: grid
         cards:
           - type: custom:weather-card
@@ -41,7 +42,7 @@ views:
           - show_current: false
             show_forecast: true
             type: weather-forecast
-            entity: weather.107_courtney_springs_2
+            entity: __WEATHER_FORECAST__
             forecast_type: hourly
             name: Weather Forecast
             grid_options:
@@ -56,6 +57,8 @@ views:
                   border: none !important;
                 }
         column_span: 10
+
+      # --- CONTROLS SECTION (View selector + Filter Buttons) ---
       - type: grid
         cards:
           - type: vertical-stack
@@ -82,62 +85,22 @@ views:
             show_attribute: false
           - type: horizontal-stack
             cards:
+              # __LOOP_PERSONS_START__
               - type: custom:bubble-card
                 card_type: button
                 button_type: state
-                entity: person.katlin_john
+                entity: __PERSON_1__
                 show_icon: true
                 show_name: true
                 tap_action:
                   action: perform-action
-                  perform_action: script.kat_calendar_visible_filter
+                  perform_action: script.person1_calendar_visible_filter
                 styles: |
                   .bubble-button-background {
                     opacity: 1 !important;
-                    background-color: ${hass.states['input_text.kat_calendar_filter'].state === '.*' ? 'light-grey' : 'var(--kat-default-primary-color)'} !important;
+                    background-color: ${hass.states['input_text.person1_calendar_filter'].state === '.*' ? 'light-grey' : 'var(--person1-default-primary-color)'} !important;
                   }
-              - type: custom:bubble-card
-                card_type: button
-                button_type: state
-                entity: person.curtis_john
-                show_icon: true
-                show_name: true
-                tap_action:
-                  action: perform-action
-                  perform_action: script.buck_calendar_visible_filter
-                styles: |
-                  .bubble-button-background {
-                    opacity: 1 !important;
-                    background-color: ${hass.states['input_text.buck_calendar_filter'].state === '.*' ? 'light-grey' : 'var(--buck-default-primary-color)'} !important;
-                  }
-              - type: custom:bubble-card
-                card_type: button
-                button_type: state
-                entity: person.jacob_hogan
-                show_icon: true
-                show_name: true
-                tap_action:
-                  action: perform-action
-                  perform_action: script.jacob_calendar_visible_filter
-                styles: |
-                  .bubble-button-background {
-                    opacity: 1 !important;
-                    background-color: ${hass.states['input_text.jacob_calendar_filter'].state === '.*' ? 'light-grey' : 'var(--jacob-default-primary-color)'} !important;
-                  }
-              - type: custom:bubble-card
-                card_type: button
-                button_type: state
-                entity: person.connor_john
-                show_icon: true
-                show_name: true
-                tap_action:
-                  action: perform-action
-                  perform_action: script.connor_calendar_visible_filter
-                styles: |
-                  .bubble-button-background {
-                    opacity: 1 !important;
-                    background-color: ${hass.states['input_text.connor_calendar_filter'].state === '.*' ? 'light-grey' : 'var(--connor-default-primary-color)'} !important;
-                  }
+              # __LOOP_PERSONS_END__
               - type: custom:bubble-card
                 card_type: button
                 button_type: switch
@@ -151,7 +114,7 @@ views:
                 styles: |
                   .bubble-button-background {
                     opacity: 1 !important;
-                    background-color: ${hass.states['input_text.family_calendar_filter'].state === '^$' ? '#4A90E2' : 'var(--card-background-color)'} !important;
+                    background-color: ${hass.states['input_text.family_calendar_filter'].state === '^$' ? '#4A90E2' : 'light-grey'} !important;
                   }
                 entity: input_boolean.family_calendar_show
               - type: custom:bubble-card
@@ -216,8 +179,11 @@ views:
               columns: 10
               rows: 1
         column_span: 10
+
+      # --- CALENDAR VIEWS SECTION ---
       - type: grid
         cards:
+          # -- TODAY VIEW --
           - type: conditional
             conditions:
               - entity: input_select.calendar_view
@@ -225,17 +191,20 @@ views:
             card:
               type: horizontal-stack
               cards:
+                # __LOOP_PERSONS_START__
                 - type: vertical-stack
                   cards:
                     - type: markdown
                       content: >
                         <div style="text-align: center; font-size: 1.5em;
                         font-weight: bold; color:
-                        var(--kat-default-primary-color);">Kat</div>
+                        var(--person1-default-primary-color);">Person1</div>
                     - type: custom:atomic-calendar-revive
                       entities:
-                        - entity: calendar.katlin_heyjohn_family
-                          color: var(--kat-default-primary-color)
+                        - entity: __CAL_1__
+                          color: var(--person1-default-primary-color)
+                        #ONCALL:- entity: __CAL_1_ONCALL__
+                        #ONCALL:  color: var(--person1-default-primary-color)
                       maxDaysToShow: 1
                       showDate: false
                       showMonth: false
@@ -254,98 +223,12 @@ views:
                             border-radius: 12px;
                             box-shadow: none;
                           }
-                - type: vertical-stack
-                  cards:
-                    - type: markdown
-                      content: >
-                        <div style="text-align: center; font-size: 1.5em;
-                        font-weight: bold; color:
-                        var(--buck-default-primary-color);">Buck</div>
-                    - type: custom:atomic-calendar-revive
-                      entities:
-                        - entity: calendar.curtis_heyjohn_family
-                          color: var(--buck-default-primary-color)
-                        - entity: calendar.on_call_schedule_for_buck_john_2
-                          color: var(--buck-default-primary-color)
-                      maxDaysToShow: 1
-                      showDate: false
-                      showMonth: false
-                      showWeekDay: false
-                      showLoader: false
-                      showLocation: true
-                      showDescription: false
-                      linkTarget: _blank
-                      dimFinishedEvents: true
-                      maxEventCount: 20
-                      showNoEventsForToday: true
-                      card_mod:
-                        style: |
-                          ha-card {
-                            background: rgba(255, 255, 255, 0.6) !important;
-                            border-radius: 12px;
-                            box-shadow: none;
-                          }
-                - type: vertical-stack
-                  cards:
-                    - type: markdown
-                      content: >
-                        <div style="text-align: center; font-size: 1.5em;
-                        font-weight: bold; color:
-                        var(--jacob-default-primary-color);">Jacob</div>
-                    - type: custom:atomic-calendar-revive
-                      entities:
-                        - entity: calendar.jacobhogan91_gmail_com
-                          color: var(--jacob-default-primary-color)
-                      maxDaysToShow: 1
-                      showDate: false
-                      showMonth: false
-                      showWeekDay: false
-                      showLoader: false
-                      showLocation: true
-                      showDescription: false
-                      linkTarget: _blank
-                      dimFinishedEvents: true
-                      maxEventCount: 20
-                      showNoEventsForToday: true
-                      card_mod:
-                        style: |
-                          ha-card {
-                            background: rgba(255, 255, 255, 0.6) !important;
-                            border-radius: 12px;
-                            box-shadow: none;
-                          }
-                - type: vertical-stack
-                  cards:
-                    - type: markdown
-                      content: >
-                        <div style="text-align: center; font-size: 1.5em;
-                        font-weight: bold; color:
-                        var(--connor-default-primary-color);">Connor</div>
-                    - type: custom:atomic-calendar-revive
-                      entities:
-                        - entity: calendar.connor
-                          color: var(--connor-default-primary-color)
-                      maxDaysToShow: 1
-                      showDate: false
-                      showMonth: false
-                      showWeekDay: false
-                      showLoader: false
-                      showLocation: true
-                      showDescription: false
-                      linkTarget: _blank
-                      dimFinishedEvents: true
-                      maxEventCount: 20
-                      showNoEventsForToday: true
-                      card_mod:
-                        style: |
-                          ha-card {
-                            background: rgba(255, 255, 255, 0.6) !important;
-                            border-radius: 12px;
-                            box-shadow: none;
-                          }
+                # __LOOP_PERSONS_END__
             grid_options:
               columns: 120
               rows: 1
+
+          # -- TOMORROW VIEW --
           - type: conditional
             conditions:
               - entity: input_select.calendar_view
@@ -353,17 +236,20 @@ views:
             card:
               type: horizontal-stack
               cards:
+                # __LOOP_PERSONS_START__
                 - type: vertical-stack
                   cards:
                     - type: markdown
                       content: >
                         <div style="text-align: center; font-size: 1.5em;
                         font-weight: bold; color:
-                        var(--kat-default-primary-color);">Kat</div>
+                        var(--person1-default-primary-color);">Person1</div>
                     - type: custom:atomic-calendar-revive
                       entities:
-                        - entity: calendar.katlin_heyjohn_family
-                          color: var(--kat-default-primary-color)
+                        - entity: __CAL_1__
+                          color: var(--person1-default-primary-color)
+                        #ONCALL:- entity: __CAL_1_ONCALL__
+                        #ONCALL:  color: var(--person1-default-primary-color)
                       maxDaysToShow: 2
                       startDaysAhead: 1
                       showDate: false
@@ -383,101 +269,12 @@ views:
                             border-radius: 12px;
                             box-shadow: none;
                           }
-                - type: vertical-stack
-                  cards:
-                    - type: markdown
-                      content: >
-                        <div style="text-align: center; font-size: 1.5em;
-                        font-weight: bold; color:
-                        var(--buck-default-primary-color);">Buck</div>
-                    - type: custom:atomic-calendar-revive
-                      entities:
-                        - entity: calendar.curtis_heyjohn_family
-                          color: var(--buck-default-primary-color)
-                        - entity: calendar.on_call_schedule_for_buck_john_2
-                          color: var(--buck-default-primary-color)
-                      maxDaysToShow: 2
-                      startDaysAhead: 1
-                      showDate: false
-                      showMonth: false
-                      showWeekDay: false
-                      showLoader: false
-                      showLocation: true
-                      showDescription: false
-                      linkTarget: _blank
-                      dimFinishedEvents: true
-                      maxEventCount: 20
-                      showNoEventsForToday: true
-                      card_mod:
-                        style: |
-                          ha-card {
-                            background: rgba(255, 255, 255, 0.6) !important;
-                            border-radius: 12px;
-                            box-shadow: none;
-                          }
-                - type: vertical-stack
-                  cards:
-                    - type: markdown
-                      content: >
-                        <div style="text-align: center; font-size: 1.5em;
-                        font-weight: bold; color:
-                        var(--jacob-default-primary-color);">Jacob</div>
-                    - type: custom:atomic-calendar-revive
-                      entities:
-                        - entity: calendar.jacobhogan91_gmail_com
-                          color: var(--jacob-default-primary-color)
-                      maxDaysToShow: 2
-                      startDaysAhead: 1
-                      showDate: false
-                      showMonth: false
-                      showWeekDay: false
-                      showLoader: false
-                      showLocation: true
-                      showDescription: false
-                      linkTarget: _blank
-                      dimFinishedEvents: true
-                      maxEventCount: 20
-                      showNoEventsForToday: true
-                      card_mod:
-                        style: |
-                          ha-card {
-                            background: rgba(255, 255, 255, 0.6) !important;
-                            border-radius: 12px;
-                            box-shadow: none;
-                          }
-                - type: vertical-stack
-                  cards:
-                    - type: markdown
-                      content: >
-                        <div style="text-align: center; font-size: 1.5em;
-                        font-weight: bold; color:
-                        var(--connor-default-primary-color);">Connor</div>
-                    - type: custom:atomic-calendar-revive
-                      entities:
-                        - entity: calendar.connor
-                          color: var(--connor-default-primary-color)
-                      maxDaysToShow: 2
-                      startDaysAhead: 1
-                      showDate: false
-                      showMonth: false
-                      showWeekDay: false
-                      showLoader: false
-                      showLocation: true
-                      showDescription: false
-                      linkTarget: _blank
-                      dimFinishedEvents: true
-                      maxEventCount: 20
-                      showNoEventsForToday: true
-                      card_mod:
-                        style: |
-                          ha-card {
-                            background: rgba(255, 255, 255, 0.6) !important;
-                            border-radius: 12px;
-                            box-shadow: none;
-                          }
+                # __LOOP_PERSONS_END__
             grid_options:
               columns: 120
               rows: 1
+
+          # -- WEEK VIEW --
           - type: conditional
             conditions:
               - entity: input_select.calendar_view
@@ -619,19 +416,17 @@ views:
                           - font-weight: bold
                 - type: custom:config-template-card
                   entities:
-                    - input_text.kat_calendar_filter
-                    - input_text.buck_calendar_filter
-                    - input_text.jacob_calendar_filter
-                    - input_text.connor_calendar_filter
+                    # __LOOP_PERSONS_START__
+                    - input_text.person1_calendar_filter
+                    # __LOOP_PERSONS_END__
                     - input_text.family_calendar_filter
                     - input_text.holidays_calendar_filter
                     - input_text.sports_calendar_filter
                     - input_number.week_view_offset
                   variables:
-                    KATCAL: states['input_text.kat_calendar_filter']?.state
-                    BUCCAL: states['input_text.buck_calendar_filter']?.state
-                    JACCAL: states['input_text.jacob_calendar_filter']?.state
-                    CONCAL: states['input_text.connor_calendar_filter']?.state
+                    # __LOOP_PERSONS_START__
+                    PERSON1CAL: states['input_text.person1_calendar_filter']?.state
+                    # __LOOP_PERSONS_END__
                     FAMCAL: states['input_text.family_calendar_filter']?.state
                     HOLCAL: states['input_text.holidays_calendar_filter']?.state
                     SPOCAL: states['input_text.sports_calendar_filter']?.state
@@ -645,40 +440,29 @@ views:
                   card:
                     type: custom:week-planner-card
                     calendars:
-                      - entity: calendar.katlin_heyjohn_family
-                        name: Kat
-                        color: var(--kat-default-primary-color)
-                        filter: ${ KATCAL }
-                      - entity: calendar.curtis_heyjohn_family
-                        name: Buck
-                        color: var(--buck-default-primary-color)
-                        filter: ${ BUCCAL }
-                      - entity: calendar.on_call_schedule_for_buck_john_2
-                        color: var(--buck-default-primary-color)
-                        name: Buck
-                        filter: ${ BUCCAL }
-                      - entity: calendar.jacobhogan91_gmail_com
-                        name: Jacob
-                        color: var(--jacob-default-primary-color)
-                        filter: ${ JACCAL }
-                      - entity: calendar.connor
-                        name: Connor
-                        color: var(--connor-default-primary-color)
-                        filter: ${ CONCAL }
-                      - entity: calendar.friend_events
+                      # __LOOP_PERSONS_START__
+                      - entity: __CAL_1__
+                        name: Person1
+                        color: var(--person1-default-primary-color)
+                        filter: ${ PERSON1CAL }
+                      #ONCALL:- entity: __CAL_1_ONCALL__
+                      #ONCALL:  color: var(--person1-default-primary-color)
+                      #ONCALL:  name: Person1
+                      #ONCALL:  filter: ${ PERSON1CAL }
+                      # __LOOP_PERSONS_END__
+                      - entity: __CAL_FRIENDS__
                         name: Family
                         color: var(--family-default-primary-color)
                         filter: ${ FAMCAL }
-                      - entity: calendar.family_calendar
+                      - entity: __CAL_FAMILY__
                         name: Family
                         color: var(--family-default-primary-color)
                         filter: ${ FAMCAL }
-                      - entity: >-
-                          calendar.https_www_seahawks_com_api_addtocalendar_ag_d_text_seattle_seahawks_games
+                      - entity: __CAL_SEAHAWKS__
                         name: Sports
                         color: var(--sports-default-primary-color)
                         filter: ${ SPOCAL }
-                      - entity: calendar.united_states_va
+                      - entity: __CAL_HOLIDAYS__
                         name: Holidays
                         color: var(--holidays-default-primary-color)
                         filter: ${ HOLCAL }
@@ -713,6 +497,8 @@ views:
             grid_options:
               columns: 120
               rows: 1
+
+          # -- MONTH VIEW --
           - type: conditional
             conditions:
               - entity: input_select.calendar_view
@@ -849,19 +635,17 @@ views:
                           - font-weight: bold
                 - type: custom:config-template-card
                   entities:
-                    - input_text.kat_calendar_filter
-                    - input_text.buck_calendar_filter
-                    - input_text.jacob_calendar_filter
-                    - input_text.connor_calendar_filter
+                    # __LOOP_PERSONS_START__
+                    - input_text.person1_calendar_filter
+                    # __LOOP_PERSONS_END__
                     - input_text.family_calendar_filter
                     - input_text.holidays_calendar_filter
                     - input_text.sports_calendar_filter
                     - input_number.month_view_offset
                   variables:
-                    KATCAL: states['input_text.kat_calendar_filter']?.state
-                    BUCCAL: states['input_text.buck_calendar_filter']?.state
-                    JACCAL: states['input_text.jacob_calendar_filter']?.state
-                    CONCAL: states['input_text.connor_calendar_filter']?.state
+                    # __LOOP_PERSONS_START__
+                    PERSON1CAL: states['input_text.person1_calendar_filter']?.state
+                    # __LOOP_PERSONS_END__
                     FAMCAL: states['input_text.family_calendar_filter']?.state
                     HOLCAL: states['input_text.holidays_calendar_filter']?.state
                     SPOCAL: states['input_text.sports_calendar_filter']?.state
@@ -897,40 +681,29 @@ views:
                   card:
                     type: custom:week-planner-card
                     calendars:
-                      - entity: calendar.katlin_heyjohn_family
-                        name: Kat
-                        color: var(--kat-default-primary-color)
-                        filter: ${ KATCAL }
-                      - entity: calendar.curtis_heyjohn_family
-                        name: Buck
-                        color: var(--buck-default-primary-color)
-                        filter: ${ BUCCAL }
-                      - entity: calendar.on_call_schedule_for_buck_john_2
-                        color: var(--buck-default-primary-color)
-                        name: Buck
-                        filter: ${ BUCCAL }
-                      - entity: calendar.jacobhogan91_gmail_com
-                        name: Jacob
-                        color: var(--jacob-default-primary-color)
-                        filter: ${ JACCAL }
-                      - entity: calendar.connor
-                        name: Connor
-                        color: var(--connor-default-primary-color)
-                        filter: ${ CONCAL }
-                      - entity: calendar.friend_events
+                      # __LOOP_PERSONS_START__
+                      - entity: __CAL_1__
+                        name: Person1
+                        color: var(--person1-default-primary-color)
+                        filter: ${ PERSON1CAL }
+                      #ONCALL:- entity: __CAL_1_ONCALL__
+                      #ONCALL:  color: var(--person1-default-primary-color)
+                      #ONCALL:  name: Person1
+                      #ONCALL:  filter: ${ PERSON1CAL }
+                      # __LOOP_PERSONS_END__
+                      - entity: __CAL_FRIENDS__
                         name: Family
                         color: var(--family-default-primary-color)
                         filter: ${ FAMCAL }
-                      - entity: calendar.family_calendar
+                      - entity: __CAL_FAMILY__
                         name: Family
                         color: var(--family-default-primary-color)
                         filter: ${ FAMCAL }
-                      - entity: >-
-                          calendar.https_www_seahawks_com_api_addtocalendar_ag_d_text_seattle_seahawks_games
+                      - entity: __CAL_SEAHAWKS__
                         name: Sports
                         color: var(--sports-default-primary-color)
                         filter: ${ SPOCAL }
-                      - entity: calendar.united_states_va
+                      - entity: __CAL_HOLIDAYS__
                         name: Holidays
                         color: var(--holidays-default-primary-color)
                         filter: ${ HOLCAL }
@@ -970,6 +743,8 @@ views:
               columns: 120
               rows: 1
         column_span: 10
+
+      # --- POP-UP SECTION (Add Calendar Event) ---
       - type: grid
         cards:
           - type: vertical-stack
@@ -984,13 +759,8 @@ views:
                 show_name: true
                 styles: |
                   .bubble-button-card-container {
-                    background: 
-                    ${hass.states['input_select.calendar_select'].state == 'Kat' ? 'var(--kat-default-primary-color)' 
-                    : hass.states['input_select.calendar_select'].state == 'Buck' ? 'var(--buck-default-primary-color)' 
-                    : hass.states['input_select.calendar_select'].state == 'Jacob' ? 'var(--jacob-default-primary-color)' 
-                    : hass.states['input_select.calendar_select'].state == 'Connor' ? 'var(--connor-default-primary-color)' 
-                    : hass.states['input_select.calendar_select'].state == 'Family' ? 'var(--family-default-primary-color)' 
-                    : 'gray'} !important;
+                    background:
+                    ##PERSON_STYLE_TERNARY## !important;
                   }
               - type: vertical-stack
                 cards:
@@ -1036,25 +806,27 @@ views:
                       card:
                         - background-color: |
                             [[[
-                              if (states['input_select.calendar_select'].state == 'Kat') return "var(--kat-default-primary-color)";
-                              if (states['input_select.calendar_select'].state == 'Buck') return "var(--buck-default-primary-color)";
-                              if (states['input_select.calendar_select'].state == 'Jacob') return "var(--jacob-default-primary-color)";
-                              if (states['input_select.calendar_select'].state == 'Connor') return "var(--connor-default-primary-color)";
+                              ##PERSON_RETURN_TERNARY##
                               if (states['input_select.calendar_select'].state == 'Family') return "var(--family-default-primary-color)";
                               return "gray";
                             ]]]
     cards: []
     icon: mdi:calendar-account
+
+  # ==============================================================================
+  # CHORES VIEW
+  # ==============================================================================
   - type: sections
     max_columns: 10
     path: chores
     icon: mdi:broom
     sections:
+      # __LOOP_PERSONS_START__
       - type: grid
         column_span: 2
         cards:
           - type: custom:button-card
-            entity: person.katlin_john
+            entity: __PERSON_1__
             show_entity_picture: true
             show_name: false
             show_state: true
@@ -1062,7 +834,7 @@ views:
               action: none
             styles:
               card:
-                - background: '#E91E63'
+                - background: '__COLOR_1__'
                 - border-radius: 12px
                 - padding: 16px
                 - margin: 0 40px 0 0
@@ -1092,7 +864,15 @@ views:
             card_param: cards
             filter:
               template: >-
-                {%- set chores_raw = state_attr('sensor.kat_chores_today',
+                #PRESENCE:{%- set person1_home = state_attr('sensor.person1_chores_today', 'person1_home') -%}
+
+                #PRESENCE:{%- if person1_home == false or person1_home == 'False' -%}
+
+                #PRESENCE:{{ {'type': 'markdown', 'content': '🏠 Away'} }},
+
+                #PRESENCE:{%- else -%}
+
+                {%- set chores_raw = state_attr('sensor.person1_chores_today',
                 'chores') -%}
 
                 {%- set chores = chores_raw | from_json if chores_raw is string
@@ -1107,231 +887,17 @@ views:
                 {%- for chore in chores -%}
 
                 {{ {'type': 'custom:button-card', 'entity':
-                'sensor.kat_chores_today', 'show_icon': true, 'show_name': true,
-                'show_state': false, 'icon': 'mdi:checkbox-marked-circle' if
-                chore.done else 'mdi:checkbox-blank-circle-outline', 'name':
-                chore.name ~ ' (' ~ chore.points ~ ' pts)', 'tap_action':
-                {'action': 'call-service', 'service': 'script.complete_chore',
-                'service_data': {'chore_id': chore.id, 'person': 'kat',
-                'points': chore.points}}, 'styles': {'card': [{'background':
-                'rgba(0,0,0,0.05)' if chore.done else 'rgba(255,255,255,0.95)'},
-                {'border-radius': '8px'}, {'padding': '12px'}, {'margin-bottom':
-                '8px'}, {'opacity': '0.5' if chore.done else '1'}], 'icon':
-                [{'color': '#E91E63'}, {'width': '28px'}, {'height': '28px'}],
-                'name': [{'font-size': '1.1em'}, {'font-weight': 'normal' if
-                chore.done else 'bold'}, {'text-decoration': 'line-through' if
-                chore.done else 'none'}, {'color': '#888' if chore.done else
-                'inherit'}, {'justify-self': 'start'}, {'white-space':
-                'normal'}, {'text-align': 'left'}], 'grid':
-                [{'grid-template-areas': '"i n"'}, {'grid-template-columns':
-                '40px 1fr'}]}} }},
-
-                {%- endfor -%}
-
-                {%- endif -%}
-            grid_options:
-              columns: 24
-              rows: auto
-          - type: horizontal-stack
-            cards:
-              - type: entity
-                entity: input_number.kat_weekly_points
-                name: Week
-                icon: none
-                card_mod:
-                  style: >
-                    ha-card { text-align: center; }
-
-                    .value { font-size: 1.8em; font-weight: bold; color:
-                    #E91E63; }
-              - type: entity
-                entity: input_number.kat_monthly_points
-                name: Month
-                icon: none
-                card_mod:
-                  style: >
-                    ha-card { text-align: center; }
-
-                    .value { font-size: 1.8em; font-weight: bold; color:
-                    #E91E63; }
-            grid_options:
-              columns: 24
-              rows: auto
-      - type: grid
-        column_span: 2
-        cards:
-          - type: custom:button-card
-            entity: person.curtis_john
-            show_entity_picture: true
-            show_state: true
-            show_name: false
-            tap_action:
-              action: none
-            styles:
-              card:
-                - background: '#2196F3'
-                - border-radius: 12px
-                - padding: 16px
-              entity_picture:
-                - width: 150px
-                - height: 150px
-                - border-radius: 50%
-              state:
-                - color: white
-                - font-size: 1.4em
-                - font-weight: bold
-              custom_fields:
-                remaining:
-                  - color: rgba(255,255,255,0.8)
-                  - font-size: 1em
-                  - margin-top: 4px
-            grid_options:
-              columns: 24
-          - type: custom:auto-entities
-            show_empty: true
-            card:
-              type: vertical-stack
-            card_param: cards
-            filter:
-              template: >-
-                {%- set chores_raw = state_attr('sensor.buck_chores_today',
-                'chores') -%}
-
-                {%- set chores = chores_raw | from_json if chores_raw is string
-                else (chores_raw or []) -%}
-
-                {%- if chores | length == 0 -%}
-
-                {{ {'type': 'markdown', 'content': '✅ All done for today!'} }},
-
-                {%- else -%}
-
-                {%- for chore in chores -%}
-
-                {{ {'type': 'custom:button-card', 'entity':
-                'sensor.buck_chores_today', 'show_icon': true, 'show_name':
+                'sensor.person1_chores_today', 'show_icon': true, 'show_name':
                 true, 'show_state': false, 'icon': 'mdi:checkbox-marked-circle'
                 if chore.done else 'mdi:checkbox-blank-circle-outline', 'name':
                 chore.name ~ ' (' ~ chore.points ~ ' pts)', 'tap_action':
                 {'action': 'call-service', 'service': 'script.complete_chore',
-                'service_data': {'chore_id': chore.id, 'person': 'buck',
+                'service_data': {'chore_id': chore.id, 'person': 'person1',
                 'points': chore.points}}, 'styles': {'card': [{'background':
                 'rgba(0,0,0,0.05)' if chore.done else 'rgba(255,255,255,0.95)'},
                 {'border-radius': '8px'}, {'padding': '12px'}, {'margin-bottom':
                 '8px'}, {'opacity': '0.5' if chore.done else '1'}], 'icon':
-                [{'color': '#2196F3'}, {'width': '28px'}, {'height': '28px'}],
-                'name': [{'font-size': '1.1em'}, {'font-weight': 'normal' if
-                chore.done else 'bold'}, {'text-decoration': 'line-through' if
-                chore.done else 'none'}, {'color': '#888' if chore.done else
-                'inherit'}, {'justify-self': 'start'}, {'white-space':
-                'normal'}, {'text-align': 'left'}], 'grid':
-                [{'grid-template-areas': '"i n"'}, {'grid-template-columns':
-                '40px 1fr'}]}} }},
-
-                {%- endfor -%}
-
-                {%- endif -%}
-            grid_options:
-              columns: 24
-              rows: auto
-          - type: horizontal-stack
-            cards:
-              - type: entity
-                entity: input_number.buck_weekly_points
-                name: Week
-                icon: none
-                card_mod:
-                  style: >
-                    ha-card { text-align: center; }
-
-                    .value { font-size: 1.8em; font-weight: bold; color:
-                    #2196F3; }
-              - type: entity
-                entity: input_number.buck_monthly_points
-                name: Month
-                icon: none
-                card_mod:
-                  style: >
-                    ha-card { text-align: center; }
-
-                    .value { font-size: 1.8em; font-weight: bold; color:
-                    #2196F3; }
-            grid_options:
-              columns: 24
-              rows: auto
-      - type: grid
-        column_span: 2
-        cards:
-          - type: custom:button-card
-            entity: person.jacob_hogan
-            name: Jacob
-            show_entity_picture: true
-            show_state: true
-            show_name: false
-            tap_action:
-              action: none
-            styles:
-              card:
-                - background: '#4CAF50'
-                - border-radius: 12px
-                - padding: 16px
-              entity_picture:
-                - width: 150px
-                - height: 150px
-                - border-radius: 50%
-              state:
-                - color: white
-                - font-size: 1.4em
-                - font-weight: bold
-              custom_fields:
-                remaining:
-                  - color: rgba(255,255,255,0.8)
-                  - font-size: 1em
-                  - margin-top: 4px
-            grid_options:
-              columns: 24
-          - type: custom:auto-entities
-            show_empty: true
-            card:
-              type: vertical-stack
-            card_param: cards
-            filter:
-              template: >-
-                {%- set jacob_home = state_attr('sensor.jacob_chores_today',
-                'jacob_home') -%}
-
-                {%- if jacob_home == false or jacob_home == 'False' -%}
-
-                {{ {'type': 'markdown', 'content': '🏠 At Dads house'} }},
-
-                {%- else -%}
-
-                {%- set chores_raw = state_attr('sensor.jacob_chores_today',
-                'chores') -%}
-
-                {%- set chores = chores_raw | from_json if chores_raw is string
-                else (chores_raw or []) -%}
-
-                {%- if chores | length == 0 -%}
-
-                {{ {'type': 'markdown', 'content': '✅ All done for today!'} }},
-
-                {%- else -%}
-
-                {%- for chore in chores -%}
-
-                {{ {'type': 'custom:button-card', 'entity':
-                'sensor.jacob_chores_today', 'show_icon': true, 'show_name':
-                true, 'show_state': false, 'icon': 'mdi:checkbox-marked-circle'
-                if chore.done else 'mdi:checkbox-blank-circle-outline', 'name':
-                chore.name ~ ' (' ~ chore.points ~ ' pts)', 'tap_action':
-                {'action': 'call-service', 'service': 'script.complete_chore',
-                'service_data': {'chore_id': chore.id, 'person': 'jacob',
-                'points': chore.points}}, 'styles': {'card': [{'background':
-                'rgba(0,0,0,0.05)' if chore.done else 'rgba(255,255,255,0.95)'},
-                {'border-radius': '8px'}, {'padding': '12px'}, {'margin-bottom':
-                '8px'}, {'opacity': '0.5' if chore.done else '1'}], 'icon':
-                [{'color': '#4CAF50'}, {'width': '28px'}, {'height': '28px'}],
+                [{'color': '__COLOR_1__'}, {'width': '28px'}, {'height': '28px'}],
                 'name': [{'font-size': '1.1em'}, {'font-weight': 'normal' if
                 chore.done else 'bold'}, {'text-decoration': 'line-through' if
                 chore.done else 'none'}, {'color': '#888' if chore.done else
@@ -1344,14 +910,14 @@ views:
 
                 {%- endif -%}
 
-                {%- endif -%}
+                #PRESENCE:{%- endif -%}
             grid_options:
               columns: 24
               rows: auto
           - type: horizontal-stack
             cards:
               - type: entity
-                entity: input_number.jacob_weekly_points
+                entity: input_number.person1_weekly_points
                 name: Week
                 icon: none
                 card_mod:
@@ -1359,9 +925,9 @@ views:
                     ha-card { text-align: center; }
 
                     .value { font-size: 1.8em; font-weight: bold; color:
-                    #4CAF50; }
+                    __COLOR_1__; }
               - type: entity
-                entity: input_number.jacob_monthly_points
+                entity: input_number.person1_monthly_points
                 name: Month
                 icon: none
                 card_mod:
@@ -1369,113 +935,11 @@ views:
                     ha-card { text-align: center; }
 
                     .value { font-size: 1.8em; font-weight: bold; color:
-                    #4CAF50; }
+                    __COLOR_1__; }
             grid_options:
               columns: 24
               rows: auto
-      - type: grid
-        column_span: 2
-        cards:
-          - type: custom:button-card
-            entity: person.connor_john
-            name: Connor
-            show_entity_picture: true
-            show_state: true
-            show_name: false
-            tap_action:
-              action: none
-            styles:
-              card:
-                - background: '#FF9800'
-                - border-radius: 12px
-                - padding: 16px
-              entity_picture:
-                - width: 150px
-                - height: 150px
-                - border-radius: 50%
-              state:
-                - color: white
-                - font-size: 1.4em
-                - font-weight: bold
-              custom_fields:
-                remaining:
-                  - color: rgba(255,255,255,0.8)
-                  - font-size: 1em
-                  - margin-top: 4px
-            grid_options:
-              columns: 24
-          - type: custom:auto-entities
-            show_empty: true
-            card:
-              type: vertical-stack
-            card_param: cards
-            filter:
-              template: >-
-                {%- set chores_raw = state_attr('sensor.connor_chores_today',
-                'chores') -%}
-
-                {%- set chores = chores_raw | from_json if chores_raw is string
-                else (chores_raw or []) -%}
-
-                {%- if chores | length == 0 -%}
-
-                {{ {'type': 'markdown', 'content': '✅ All done for today!'} }},
-
-                {%- else -%}
-
-                {%- for chore in chores -%}
-
-                {{ {'type': 'custom:button-card', 'entity':
-                'sensor.connor_chores_today', 'show_icon': true, 'show_name':
-                true, 'show_state': false, 'icon': 'mdi:checkbox-marked-circle'
-                if chore.done else 'mdi:checkbox-blank-circle-outline', 'name':
-                chore.name ~ ' (' ~ chore.points ~ ' pts)', 'tap_action':
-                {'action': 'call-service', 'service': 'script.complete_chore',
-                'service_data': {'chore_id': chore.id, 'person': 'connor',
-                'points': chore.points}}, 'styles': {'card': [{'background':
-                'rgba(0,0,0,0.05)' if chore.done else 'rgba(255,255,255,0.95)'},
-                {'border-radius': '8px'}, {'padding': '12px'}, {'margin-bottom':
-                '8px'}, {'opacity': '0.5' if chore.done else '1'}], 'icon':
-                [{'color': '#FF9800'}, {'width': '28px'}, {'height': '28px'}],
-                'name': [{'font-size': '1.1em'}, {'font-weight': 'normal' if
-                chore.done else 'bold'}, {'text-decoration': 'line-through' if
-                chore.done else 'none'}, {'color': '#888' if chore.done else
-                'inherit'}, {'justify-self': 'start'}, {'white-space':
-                'normal'}, {'text-align': 'left'}], 'grid':
-                [{'grid-template-areas': '"i n"'}, {'grid-template-columns':
-                '40px 1fr'}]}} }},
-
-                {%- endfor -%}
-
-                {%- endif -%}
-            grid_options:
-              columns: 24
-              rows: auto
-          - type: horizontal-stack
-            cards:
-              - type: entity
-                entity: input_number.connor_weekly_points
-                name: Week
-                icon: none
-                card_mod:
-                  style: >
-                    ha-card { text-align: center; }
-
-                    .value { font-size: 1.8em; font-weight: bold; color:
-                    #FF9800; }
-              - type: entity
-                entity: input_number.connor_monthly_points
-                name: Month
-                icon: none
-                card_mod:
-                  style: >
-                    ha-card { text-align: center; }
-
-                    .value { font-size: 1.8em; font-weight: bold; color:
-                    #FF9800; }
-            grid_options:
-              columns: 24
-              rows: auto
+      # __LOOP_PERSONS_END__
     badges:
       - type: entity
         show_name: true
@@ -1519,6 +983,10 @@ views:
             }
             style_badge$: |
               .content { color: var(--badge-color) !important; }
+
+  # ==============================================================================
+  # MEAL PLAN VIEW
+  # ==============================================================================
   - type: sections
     max_columns: 12
     path: meal-plan
@@ -1527,10 +995,17 @@ views:
     sections:
       - type: grid
         cards:
-          - type: iframe
-            url: /local/mealie-meal-plan-card.html
-            aspect_ratio: 75%
+          - type: custom:mealie-meal-plan-card
+            mealie_url: https://__MEALIE_URL__
+            api_token: __MEALIE_TOKEN__
+            grid_options:
+              columns: 144
+              rows: auto
         column_span: 12
+
+  # ==============================================================================
+  # SHOPPING VIEW
+  # ==============================================================================
   - type: sections
     max_columns: 12
     path: shopping-list
@@ -1539,16 +1014,11 @@ views:
     sections:
       - type: grid
         cards:
-          - type: todo-list
-            entity: todo.mealie_shopping
-            title: Shopping
+          - type: custom:mealie-shopping-list-card
+            mealie_url: https://__MEALIE_URL__
+            api_token: __MEALIE_TOKEN__
+            list_name: shopping
             grid_options:
-              columns: 6
-              rows: auto
-          - type: todo-list
-            entity: todo.mealie_basics
-            title: Basics
-            grid_options:
-              columns: 6
+              columns: 144
               rows: auto
         column_span: 12

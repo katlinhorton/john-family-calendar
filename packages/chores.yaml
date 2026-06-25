@@ -1,0 +1,256 @@
+# =============================================================================
+# GROCY CHORES PACKAGE
+# =============================================================================
+# Save to: /config/packages/grocy_chores.yaml
+#
+# Uses the existing sensor.grocy_chores from Grocy integration
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# INPUT BOOLEAN
+# -----------------------------------------------------------------------------
+
+input_boolean:
+  __PRESENCE_SLUG___home_today:
+    name: __PRESENCE_NAME__ Home Today
+    icon: mdi:home-account
+
+# -----------------------------------------------------------------------------
+# INPUT TEXT - Track completed chores per person (resets daily)
+# -----------------------------------------------------------------------------
+
+input_text:
+  # __LOOP_PERSONS_START__
+  person1_completed_chores:
+    name: Person1 Completed Chores
+    initial: ""
+    max: 255
+  # __LOOP_PERSONS_END__
+
+# -----------------------------------------------------------------------------
+# INPUT NUMBERS - Point tracking
+# -----------------------------------------------------------------------------
+
+input_number:
+  # __LOOP_PERSONS_START__
+  person1_weekly_points:
+    name: Person1 Weekly Points
+    min: 0
+    max: 1000
+    step: 1
+    mode: box
+
+  person1_monthly_points:
+    name: Person1 Monthly Points
+    min: 0
+    max: 5000
+    step: 1
+    mode: box
+  # __LOOP_PERSONS_END__
+
+# -----------------------------------------------------------------------------
+# TEMPLATE SENSORS - Per-person chore lists
+# -----------------------------------------------------------------------------
+
+template:
+  - sensor:
+    # __LOOP_PERSONS_START__
+      # PERSON 1 (grocy user_id: see my-config.yaml)
+      - name: "Person1 Chores Today"
+        unique_id: person1_chores_today
+        state: >
+#PRESENCE:          {% if is_state('input_boolean.person1_home_today', 'off') %}
+#PRESENCE:            0
+#PRESENCE:          {% else %}
+          {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
+          {% set dow = now().strftime('%A') | lower %}
+          {% set completed = states('input_text.person1_completed_chores') | default('') %}
+          {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
+          {% set ns = namespace(count=0) %}
+          {% for chore in chores %}
+            {% set assigned = (chore.assignment_config | default('')) | string %}
+            {% if '__GROCY_ID_1__' in assigned.split(',') | map('trim') | list %}
+              {% set period = chore.period_type | default('') %}
+              {% set config = (chore.period_config | default('')) | string | lower %}
+              {% set show = false %}
+              {% if period == 'daily' %}{% set show = true %}{% endif %}
+              {% if period == 'weekly' and dow in config %}{% set show = true %}{% endif %}
+              {% if show and (chore.id | string) not in completed_ids %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+#PRESENCE:          {% endif %}
+        attributes:
+#PRESENCE:          person1_home: "{{ is_state('input_boolean.person1_home_today', 'on') }}"
+          chores: >
+#PRESENCE:            {% if is_state('input_boolean.person1_home_today', 'off') %}
+#PRESENCE:              []
+#PRESENCE:            {% else %}
+            {% set chores = state_attr('sensor.grocy_chores', 'chores') or [] %}
+            {% set dow = now().strftime('%A') | lower %}
+            {% set completed = states('input_text.person1_completed_chores') | default('') %}
+            {% set completed_ids = completed.split(',') | map('trim') | list if completed else [] %}
+            {% set ns = namespace(result=[]) %}
+            {% for chore in chores %}
+              {% set assigned = (chore.assignment_config | default('')) | string %}
+              {% if '__GROCY_ID_1__' in assigned.split(',') | map('trim') | list %}
+                {% set period = chore.period_type | default('') %}
+                {% set config = (chore.period_config | default('')) | string | lower %}
+                {% set show = false %}
+                {% if period == 'daily' %}{% set show = true %}{% endif %}
+                {% if period == 'weekly' and dow in config %}{% set show = true %}{% endif %}
+                {% if show %}
+                  {% set desc = chore.description | default('0') %}
+                  {% set points = desc | regex_findall('\\d+') %}
+                  {% set point_val = points[0] | int(0) if points else 0 %}
+                  {% set is_done = (chore.id | string) in completed_ids %}
+                  {% set ns.result = ns.result + [{"id": chore.id, "name": chore.name, "points": point_val, "done": is_done}] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.result | to_json }}
+#PRESENCE:            {% endif %}
+    # __LOOP_PERSONS_END__
+
+# -----------------------------------------------------------------------------
+# SCRIPTS
+# -----------------------------------------------------------------------------
+
+script:
+  complete_chore:
+    alias: Toggle Chore Completion
+    mode: queued
+    fields:
+      chore_id:
+        description: The chore ID
+      person:
+        description: "Person slug (person1, person2, person3, person4)"
+      points:
+        description: Points to award/remove
+    sequence:
+      - if:
+          - condition: template
+            value_template: >
+              {% set current = states('input_text.' ~ person ~ '_completed_chores') | default('', true) | string %}
+              {% set ids = current.split(',') | map('trim') | reject('eq', '') | list %}
+              {{ (chore_id | string) in ids }}
+        then:
+          # Remove chore and subtract points
+          - service: input_text.set_value
+            target:
+              entity_id: "input_text.{{ person }}_completed_chores"
+            data:
+              value: >
+                {% set current = states('input_text.' ~ person ~ '_completed_chores') | default('', true) | string %}
+                {% set ids = current.split(',') | map('trim') | reject('eq', '') | list %}
+                {{ ids | reject('eq', chore_id | string) | join(',') }}
+          - service: input_number.set_value
+            target:
+              entity_id: "input_number.{{ person }}_weekly_points"
+            data:
+              value: "{{ [states('input_number.' ~ person ~ '_weekly_points') | int(0) - (points | int(0)), 0] | max }}"
+          - service: input_number.set_value
+            target:
+              entity_id: "input_number.{{ person }}_monthly_points"
+            data:
+              value: "{{ [states('input_number.' ~ person ~ '_monthly_points') | int(0) - (points | int(0)), 0] | max }}"
+        else:
+          # Add chore and award points
+          - service: input_text.set_value
+            target:
+              entity_id: "input_text.{{ person }}_completed_chores"
+            data:
+              value: >
+                {% set current = states('input_text.' ~ person ~ '_completed_chores') | default('', true) | string %}
+                {% set ids = current.split(',') | map('trim') | reject('eq', '') | list %}
+                {{ (ids + [chore_id | string]) | join(',') }}
+          - service: input_number.set_value
+            target:
+              entity_id: "input_number.{{ person }}_weekly_points"
+            data:
+              value: "{{ states('input_number.' ~ person ~ '_weekly_points') | int(0) + (points | int(0)) }}"
+          - service: input_number.set_value
+            target:
+              entity_id: "input_number.{{ person }}_monthly_points"
+            data:
+              value: "{{ states('input_number.' ~ person ~ '_monthly_points') | int(0) + (points | int(0)) }}"
+
+# -----------------------------------------------------------------------------
+# AUTOMATIONS
+# -----------------------------------------------------------------------------
+
+automation:
+  - alias: "Chores: Reset Daily"
+    id: chores_reset_daily
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    action:
+      - service: input_text.set_value
+        target:
+          entity_id:
+            # __LOOP_PERSONS_START__
+            - input_text.person1_completed_chores
+            # __LOOP_PERSONS_END__
+        data:
+          value: ""
+
+  - alias: "Chores: Reset Weekly Points"
+    id: chores_reset_weekly
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    condition:
+      - condition: time
+        weekday:
+          - sun
+    action:
+      - service: input_number.set_value
+        target:
+          entity_id:
+            # __LOOP_PERSONS_START__
+            - input_number.person1_weekly_points
+            # __LOOP_PERSONS_END__
+        data:
+          value: 0
+
+  - alias: "Chores: Reset Monthly Points"
+    id: chores_reset_monthly
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    condition:
+      - condition: template
+        value_template: "{{ now().day == 1 }}"
+    action:
+      - service: input_number.set_value
+        target:
+          entity_id:
+            # __LOOP_PERSONS_START__
+            - input_number.person1_monthly_points
+            # __LOOP_PERSONS_END__
+        data:
+          value: 0
+
+  - alias: "Chores: Check __PRESENCE_NAME__ Presence"
+    id: chores_presence_check
+    trigger:
+      - platform: time
+        at: "00:00:00"
+      - platform: homeassistant
+        event: start
+    action:
+      - if:
+          - condition: state
+            entity_id: __PRESENCE_PERSON_ENTITY__
+            state: "home"
+        then:
+          - service: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.__PRESENCE_SLUG___home_today
+        else:
+          - service: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.__PRESENCE_SLUG___home_today

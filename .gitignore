@@ -1,1 +1,4 @@
 custom_dashboard.yaml
+my-config.yaml
+_deploy/
+.claude/

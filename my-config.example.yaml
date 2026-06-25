@@ -1,0 +1,66 @@
+# Personal config — copy this to my-config.yaml and fill in your values.
+# my-config.yaml is gitignored. If you want to keep it in the repo,
+# encrypt it first: sops -e my-config.yaml > my-config.enc.yaml
+#
+# Run ./setup.sh to generate populated HA files in _deploy/.
+
+family:
+  members:
+    person1:
+      display_name: Alex        # name shown in dashboard labels and cards
+      slug: alex                # lowercase, no spaces — becomes part of HA entity IDs
+      person_entity: person.alex
+      calendar_entity: calendar.alex_gmail_com
+      grocy_user_id: 1          # find in Grocy > Manage Users
+      color: "#fb8072"          # optional — hex color for this person's calendar events
+                                # default palette: #fb8072 #fdbf6f #a6cee3 #cab2d6 #b2df8a #ff7f00 #e31a1c #6a3d9a
+
+    person2:
+      display_name: Jordan
+      slug: jordan
+      person_entity: person.jordan
+      calendar_entity: calendar.jordan_gmail_com
+      on_call_calendar: calendar.jordan_work_schedule  # optional, remove if unused
+      grocy_user_id: 2
+      color: "#fdbf6f"
+
+    person3:
+      display_name: Sam
+      slug: sam
+      person_entity: person.sam
+      calendar_entity: calendar.sam_gmail_com
+      grocy_user_id: 3
+      color: "#a6cee3"
+      hide_when_away: true      # optional — when true, chore tracking checks if this
+                                # person is home before counting chores. Useful for
+                                # members who split time between households.
+
+    person4:
+      display_name: Riley
+      slug: riley
+      person_entity: person.riley
+      calendar_entity: calendar.riley_gmail_com
+      grocy_user_id: 4
+      color: "#cab2d6"
+
+calendars:
+  family_display: calendar.family_calendar   # shown in week/month planner
+  family_add: calendar.family                # target for adding new events
+  friends: calendar.friend_events            # optional
+  seahawks: calendar.your_sports_team        # optional
+  holidays: calendar.united_states_va        # HA Holiday integration entity
+
+mealie:
+  url: mealie.yourdomain.com
+  api_token: YOUR_MEALIE_LONG_LIVED_TOKEN
+  config_entry_id: YOUR_MEALIE_CONFIG_ENTRY_ID
+
+grocy:
+  url: grocy.yourdomain.com
+
+weather:
+  forecast_entity: weather.openweathermap   # entity for the hourly forecast card
+
+home_assistant:
+  url: home.yourdomain.com
+  long_lived_token: YOUR_HA_TOKEN
